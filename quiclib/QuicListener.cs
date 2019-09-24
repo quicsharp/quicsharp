@@ -5,7 +5,7 @@ using System.Text;
 
 namespace quicsharp
 {
-    class QuicListener
+    public class QuicListener
     {
         private UdpClient server_;
         private bool started_;
