@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "quicsharp", "quicsharp.csproj", "{A61AB250-8A40-4695-9707-9DFC38AAA244}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "quicsharp", "quicsharp.csproj", "{A61AB250-8A40-4695-9707-9DFC38AAA244}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{5A76CAAA-AA0F-485F-A552-6779EA0E92A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "..\Server\Server.csproj", "{85ECAE26-A9FD-43CA-AD38-C0E8F32EF980}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +19,16 @@ Global
 		{A61AB250-8A40-4695-9707-9DFC38AAA244}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A61AB250-8A40-4695-9707-9DFC38AAA244}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A61AB250-8A40-4695-9707-9DFC38AAA244}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85ECAE26-A9FD-43CA-AD38-C0E8F32EF980}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85ECAE26-A9FD-43CA-AD38-C0E8F32EF980}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85ECAE26-A9FD-43CA-AD38-C0E8F32EF980}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85ECAE26-A9FD-43CA-AD38-C0E8F32EF980}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{85ECAE26-A9FD-43CA-AD38-C0E8F32EF980} = {5A76CAAA-AA0F-485F-A552-6779EA0E92A3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {491DEB2A-7239-43FB-93C7-9C8A48FF2EAB}
