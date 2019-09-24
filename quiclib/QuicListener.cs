@@ -21,10 +21,10 @@ namespace quicsharp
         }
 
         // Starts the listener
-        public void Start(IPEndPoint endpoint)
+        public void Start()
         {
             server_ = new UdpClient(Port);
-            serverConnection_ = new ServerConnection(server_, endpoint);
+            //serverConnection_ = new ServerConnection(server_, endpoint);
             started_ = true;
         }
 
