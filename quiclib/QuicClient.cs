@@ -16,7 +16,10 @@ namespace quicsharp
         // Connect to a remote server.
         public void Connect(string ip, int port)
         {
-            client_.Send(Encoding.ASCII.GetBytes("Hello"), 5, ip, port);
+            byte[] pack = { 0, 0, 1, 0, 0, 0, 0, 0, 0 };
+            Array.Copy(Encoding.Default.GetBytes("Hello"), 0, pack, 4, 5);
+
+            client_.Send(pack, pack.Length, ip, port);
         }
 
         public void Close()

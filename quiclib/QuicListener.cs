@@ -10,6 +10,8 @@ namespace quicsharp
         private UdpClient server_;
         private bool started_;
 
+        private ServerConnection serverConnection_;
+
         public int Port { get; private set; }
 
         public QuicListener(int port)
@@ -22,6 +24,7 @@ namespace quicsharp
         public void Start()
         {
             server_ = new UdpClient(Port);
+            //serverConnection_ = new ServerConnection(server_, endpoint);
             started_ = true;
         }
 
@@ -33,16 +36,27 @@ namespace quicsharp
 
         public void Receive()
         {
+            if (!started_)
+                throw new InvalidOperationException("QuicListener is not started but is waiting for packets");
+
             while (true)
             {
                 IPEndPoint client = null;
 
                 // Listening
-                byte[] data = server_.Receive(ref client);
+                Packet packet = Packet.Unpack(server_.Receive(ref client));
                 Console.WriteLine("Data received {0}:{1}.", client.Address, client.Port);
 
+                QuicConnection qc = ConnectionPool.Find(packet.ClientId);
+
+                if (qc == null)
+                {
+                    Console.WriteLine("New connection");
+                    ConnectionPool.AddConnection(qc);
+                }
+
                 // Printing message
-                string message = Encoding.Default.GetString(data);
+                string message = Encoding.Default.GetString(packet.Payload);
                 Console.WriteLine("MESSAGE : {0}\n", message);
             }
         }
