@@ -4,7 +4,7 @@ using System.Text;
 
 namespace quicsharp.QuiCSharp
 {
-    class QuicConnection
+    public class QuicConnection
     {
     }
 }
