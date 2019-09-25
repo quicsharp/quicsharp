@@ -7,12 +7,11 @@ namespace quicsharp
 {
     class Packet
     {
-        public byte[] PacketBytes;
         public byte[] Payload;
         public UInt32 ClientId;
 
         // Byte
-        private static int packetHeaderSize_ = 4;
+        protected static int packetHeaderSize_ = 4;
 
         public static Packet Unpack(byte[] data)
         {
@@ -26,18 +25,18 @@ namespace quicsharp
             {
                 // Short Header Packet
                 p = new ShortHeaderPacket();
+                if (!Packet.ReadBit(1, data))
+                    throw new ArgumentException("Corrupted packet");
+
+                p.Decode(data);
             }
             else
             {
                 // Long Header Packet
                 p = new LongHeaderPacker();
-            }
-            p.ClientId = BitConverter.ToUInt32(data, 0);
 
-            p.Payload = new byte[data.Length - packetHeaderSize_];
-            p.PacketBytes = new byte[data.Length];
-            Array.Copy(data, 4, p.Payload, 0, p.Payload.Length);
-            
+                p.Decode(data);
+            }
 
             return p;
         }
@@ -51,23 +50,36 @@ namespace quicsharp
             return (data[index / 8] >> index % 8) % 2 == 0;
         }
 
-        public static UInt32 ReadUInt32(int indexBegin, byte[] data)
+        public static int ReadNBits(int indexBegin, byte[] data, int n)
         {
-            UInt32 ret = 0;
+            int ret = 0;
 
-            if (data.Length <= (indexBegin / 8) + 4)
+            if (data.Length <= (indexBegin / 8) + (n / 8))
                 throw new AccessViolationException("QUIC packet too small");
 
-            for (int i = 0; i < 32; i++)
+            for (int i = 0; i < n; i++)
             {
                 ret = ret << 1;
                 if (Packet.ReadBit(indexBegin + i, data))
                 {
-                    ret += 1; 
+                    ret += 1;
                 }
             }
 
             return ret;
+        }
+
+        public static UInt32 ReadUInt32(int indexBegin, byte[] data)
+        {
+            UInt32 ret = (UInt32)Packet.ReadNBits(indexBegin, data, 32);
+
+            return ret;
+        }
+
+        public virtual void Decode(byte[] data)
+        {
+            if(data.Length < packetHeaderSize_)
+                throw new AccessViolationException("QUIC packet too small");
         }
     }
 }
