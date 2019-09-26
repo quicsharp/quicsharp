@@ -7,7 +7,7 @@ namespace quicsharp
     // QUIC IETF draft 17.3
     class ShortHeaderPacket : Packet
     {
-        protected new static int packetHeaderSize_ = 5;
+        protected new static int packetHeaderSize_ = 9;
         public bool Spin;
         public bool KeyPhase;
         public int PacketNumberLengthByte;
@@ -51,6 +51,27 @@ namespace quicsharp
 
             Payload = new byte[data.Length - packetHeaderSize_ - PacketNumberLengthByte];
             Array.Copy(data, packetHeaderSize_ + PacketNumberLengthByte, Payload, 0, Payload.Length);
+        }
+
+        public override byte[] Encode()
+        {
+            byte[] packet = new byte[packetHeaderSize_ + 4 + Payload.Length];
+
+            Packet.WriteBit(0, packet, false);
+            Packet.WriteBit(1, packet, true);
+            Packet.WriteBit(spinBit_, packet, Spin);
+            Packet.WriteBit(keyPhaseBit_, packet, KeyPhase);
+
+            Packet.WriteBit(packetLengthBit_, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
+            Packet.WriteBit(packetLengthBit_ + 1, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
+
+            // TODO: Write N bits
+            Packet.WriteUInt32(packetNumberBit_, packet, Convert.ToUInt32(PacketNumber));
+
+            Payload.CopyTo(packet, packetHeaderSize_ + 4);
+               
+
+            return packet;
         }
 
         private void DecodePacketNumberLengthByte(byte[] data)
