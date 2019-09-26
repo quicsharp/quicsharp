@@ -46,11 +46,19 @@ namespace quicsharp
             if (data.Length <= index / 8)
                 throw new AccessViolationException("QUIC packet too small");
 
-            byte andNumber = Convert.ToByte(0xFF);
-            if (!b)
-                andNumber -= Convert.ToByte(1 << (7 - index % 8));
 
-            data[index / 8] = Convert.ToByte(data[index / 8] & andNumber);
+            if (!b)
+            {
+                byte andNumber = Convert.ToByte(0xFF);
+                andNumber -= Convert.ToByte(1 << (7 - (index % 8)));
+                data[index / 8] = Convert.ToByte(data[index / 8] & andNumber);
+            }
+            else
+            {
+                byte orNumber = 0;
+                orNumber += Convert.ToByte(1 << (7 - (index % 8)));
+                data[index / 8] = Convert.ToByte(data[index / 8] | orNumber);
+            }
         }
         public static void WriteNBits(int indexBegin, byte[] data, bool[] b)
         {
@@ -81,7 +89,7 @@ namespace quicsharp
                 throw new AccessViolationException("QUIC packet too small");
 
             // True if the bit n index is true
-            return (data[index / 8] >> index % 8) % 2 == 0;
+            return (data[index / 8] >> (index % 8)) % 2 == 1;
         }
 
         public static int ReadNBits(int indexBegin, byte[] data, int n)
