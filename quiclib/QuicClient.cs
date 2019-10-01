@@ -8,9 +8,12 @@ namespace quicsharp
     public class QuicClient
     {
         private UdpClient client_;
+        private UInt32 packetNumber_;
+
         public QuicClient()
         {
             client_ = new UdpClient();
+            packetNumber_ = 0;
         }
 
         // Connect to a remote server.
@@ -20,6 +23,13 @@ namespace quicsharp
             Array.Copy(Encoding.Default.GetBytes("Hello"), 0, pack, 4, 5);
 
             client_.Send(pack, pack.Length, ip, port);
+        }
+
+        public int Send(byte[] payload)
+        {
+            packetNumber_++;
+
+            return 0;
         }
 
         public void Close()
