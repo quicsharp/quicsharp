@@ -28,7 +28,7 @@ namespace quicsharp
                 throw new AccessViolationException("QUIC packet too small for a ShortHeaderPacket");
 
             // TODO: Remove
-            ClientId = BitConverter.ToUInt32(data, 0);
+            ClientId = 42;
 
             /* 
                +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -56,10 +56,14 @@ namespace quicsharp
 
         public override byte[] Encode()
         {
+            Payload = EncodeFrames();
             byte[] packet = new byte[packetHeaderSize_ + 4 + Payload.Length];
 
+
             Packet.WriteBit(0, packet, false);
+
             Packet.WriteBit(1, packet, true);
+
             Packet.WriteBit(spinBit_, packet, Spin);
             Packet.WriteBit(keyPhaseBit_, packet, KeyPhase);
 
