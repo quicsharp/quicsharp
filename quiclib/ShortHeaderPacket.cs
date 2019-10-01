@@ -20,6 +20,7 @@ namespace quicsharp
         private int spinBit_ = 2;
         private int keyPhaseBit_ = 3;
         private int packetLengthBit_ = 6;
+        private int destinationConnectionIDBit_ = 8;
         private int packetNumberBit_ = 40;
         public override void Decode(byte[] data)
         {
@@ -46,7 +47,7 @@ namespace quicsharp
             // Reserved bits (R) are unused
             DecodePacketNumberLengthByte(data);
 
-            DestinationConnectionID = Packet.ReadUInt32(8, data);
+            DestinationConnectionID = Packet.ReadUInt32(destinationConnectionIDBit_, data);
             PacketNumber = Packet.ReadNBits(packetNumberBit_, data, PacketNumberLengthByte * 8);
 
             Payload = new byte[data.Length - packetHeaderSize_ - PacketNumberLengthByte];
@@ -61,6 +62,8 @@ namespace quicsharp
             Packet.WriteBit(1, packet, true);
             Packet.WriteBit(spinBit_, packet, Spin);
             Packet.WriteBit(keyPhaseBit_, packet, KeyPhase);
+
+            Packet.WriteUInt32(destinationConnectionIDBit_, packet, CreateDestinationConnectionID());
 
             Packet.WriteBit(packetLengthBit_, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
             Packet.WriteBit(packetLengthBit_ + 1, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
@@ -80,6 +83,12 @@ namespace quicsharp
             PacketNumberLengthByte += (Packet.ReadBit(packetLengthBit_, data)) ? 2 : 0;
 
             PacketNumberLengthByte += 1;
+        }
+
+        private UInt32 CreateDestinationConnectionID()
+        {
+            // TODO
+            return 42;
         }
     }
 }
