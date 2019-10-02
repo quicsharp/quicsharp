@@ -15,16 +15,16 @@ namespace quicsharp.Frames
             if (content.Length < 1 + begin)
                 throw new ArgumentException();
             if (content[begin] != Type)
-                throw new ArgumentException("Wrong frame type created");
+                throw new ArgumentException($"Wrong frame type created got {content[begin]} instead of 0x1e (30)");
 
             List<byte> b = new List<byte>();
-            for (int i = 0; i + begin < content.Length; i++)
+            for (int i = 1; i + begin < content.Length; i++)
             {
                 b.Add(content[begin + i]);
             }
             Message = Encoding.Default.GetString(b.ToArray());
 
-            return 1;
+            return content.Length;
         }
 
         public override byte[] Encode()

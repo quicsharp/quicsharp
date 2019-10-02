@@ -50,14 +50,14 @@ namespace quicsharp
             DestinationConnectionID = Packet.ReadUInt32(destinationConnectionIDBit_, data);
             PacketNumber = Packet.ReadNBits(packetNumberBit_, data, PacketNumberLengthByte * 8);
 
-            Payload = new byte[data.Length - packetHeaderSize_ - PacketNumberLengthByte];
-            Array.Copy(data, packetHeaderSize_ + PacketNumberLengthByte, Payload, 0, Payload.Length);
+            Payload = new byte[data.Length - packetHeaderSize_];
+            Array.Copy(data, packetHeaderSize_, Payload, 0, Payload.Length);
         }
 
         public override byte[] Encode()
         {
             Payload = EncodeFrames();
-            byte[] packet = new byte[packetHeaderSize_ + 4 + Payload.Length];
+            byte[] packet = new byte[packetHeaderSize_ + Payload.Length];
 
 
             Packet.WriteBit(0, packet, false);
@@ -67,15 +67,15 @@ namespace quicsharp
             Packet.WriteBit(spinBit_, packet, Spin);
             Packet.WriteBit(keyPhaseBit_, packet, KeyPhase);
 
-            Packet.WriteUInt32(destinationConnectionIDBit_, packet, CreateDestinationConnectionID());
-
             Packet.WriteBit(packetLengthBit_, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
             Packet.WriteBit(packetLengthBit_ + 1, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
+
+            Packet.WriteUInt32(destinationConnectionIDBit_, packet, CreateDestinationConnectionID());
 
             // TODO: Write N bits
             Packet.WriteUInt32(packetNumberBit_, packet, Convert.ToUInt32(PacketNumber));
 
-            Payload.CopyTo(packet, packetHeaderSize_ + 4);
+            Payload.CopyTo(packet, packetHeaderSize_);
                
 
             return packet;

@@ -73,7 +73,6 @@ namespace quicsharp
             if (data.Length <= index / 8)
                 throw new AccessViolationException("QUIC packet too small");
 
-
             if (!b)
             {
                 byte andNumber = Convert.ToByte(0xFF);
