@@ -5,7 +5,7 @@ using System.Text;
 namespace quicsharp
 {
     // QUIC IETF draft 17.1
-    class LongHeaderPacket : Packet
+    abstract class LongHeaderPacket : Packet
     {
         /* 
            +-+-+-+-+-+-+-+-+
@@ -65,7 +65,24 @@ namespace quicsharp
             Array.Copy(data, payloadStartBit_, Payload, 0, Payload.Length);
         }
 
-        // For practicity reasons, encoding is left to specialised classes
+        public override byte[] Encode()
+        {
+            byte[] packet = new byte[packetHeaderSize_ + Payload.Length];
+            WriteBit(0, packet, true);
+            WriteBit(1, packet, true);
+
+            WriteUInt32(versionBit_, packet, Version);
+
+            WriteByteFromInt(DCIDLengthBit_, packet, DCIDLength);
+            WriteUInt32(destinationConnectionIdBit_, packet, DCID);
+
+
+            WriteByteFromInt(SCIDLengthBit_, packet, SCIDLength);
+            WriteUInt32(sourceConnectionIdBit_, packet, SCID);
+
+            // payload encoding is left to type-speficic classes
+            return packet;
+        }
 
     }
 }
