@@ -9,9 +9,9 @@ namespace quicsharp
         public int ReservedBits;
         public int PacketNumberLength;
         public UInt32 PacketNumber;
-        public dynamic TokenLength;
+        public VariableLengthInteger TokenLength;
         public UInt32 Token;
-        public dynamic Length;
+        public VariableLengthInteger Length;
         public byte[] Payload;
 
         private static int reservedBitsIndex_ = 4;
@@ -56,16 +56,56 @@ namespace quicsharp
 
             PacketNumberLength = ReadNBits(packetNumberLengthBitsIndex_, data, 2) + 1;
 
-            (tokenBitsIndex_, TokenLength) = ReadVariableLengthInteger(payloadStartBit_, data);
-            Token = ReadNBytes(tokenBitsIndex_, data, TokenLength);
+            TokenLength.Decode(payloadStartBit_, data);
+            tokenBitsIndex_ = payloadStartBit_ + TokenLength.Size * 8;
+
+            Token = ReadUInt32(tokenBitsIndex_, data);
 
 
-            // TODO : refactor once we made a class for variable-length integers + refactor bit reading/writing methods
-            (packetNumberBitsIndex_, Length) = ReadVariableLengthInteger(tokenBitsIndex_ + (int)TokenLength, data);
-            PacketNumber = (uint)ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength);
+            Length.Decode(tokenBitsIndex_ + 32, data);
+            packetNumberBitsIndex_ = tokenBitsIndex_ + 32 + Length.Size * 8;
+            PacketNumber = (uint)ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength * 8);
 
-            Payload = new byte[data.Length - packetNumberBitsIndex_ - PacketNumberLength];
-            Array.Copy(data, packetNumberBitsIndex_ + PacketNumberLength, Payload, 0, Payload.Length);
+            Payload = new byte[data.Length - packetNumberBitsIndex_ - PacketNumberLength * 8];
+            Array.Copy(data, packetNumberBitsIndex_ + PacketNumberLength * 8, Payload, 0, Payload.Length);
+        }
+
+        public override byte[] Encode()
+        {
+            byte[] packet = base.Encode();
+            WriteBit(2, packet, false);
+            WriteBit(3, packet, false);
+            
+            Array.Copy(TokenLength.Encode(), 0, packet, payloadStartBit_, TokenLength.Size * 8);
+            WriteUInt32(tokenBitsIndex_, packet, Token);
+            Array.Copy(Length.Encode(), 0, packet, tokenBitsIndex_ + 32, Length.Size * 8);
+
+            switch (PacketNumberLength)
+            {
+                case 0:
+                    WriteBit(6, packet, false);
+                    WriteBit(7, packet, false);
+                    WriteNByteFromInt(packetNumberBitsIndex_, packet, PacketNumber, 1);
+                    break;
+                case 1:
+                    WriteBit(6, packet, false);
+                    WriteBit(7, packet, true);
+                    WriteNByteFromInt(packetNumberBitsIndex_, packet, PacketNumber, 2);
+                    break;
+                case 2:
+                    WriteBit(6, packet, true);
+                    WriteBit(7, packet, false);
+                    WriteNByteFromInt(packetNumberBitsIndex_, packet, PacketNumber, 3);
+                    break;
+                case 3:
+                    WriteBit(6, packet, true);
+                    WriteBit(7, packet, true);
+                    WriteNByteFromInt(packetNumberBitsIndex_, packet, PacketNumber, 4);
+                    break;
+            }
+
+            Array.Copy(Payload, 0, packet, packetNumberBitsIndex_ + PacketNumberLength * 8, Payload.Length);
+            return packet;
         }
 
 
