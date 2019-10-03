@@ -24,7 +24,7 @@ namespace quicsharp.Frames
             }
             Message = Encoding.Default.GetString(b.ToArray());
 
-            return content.Length;
+            return content.Length * 8;
         }
 
         public override byte[] Encode()

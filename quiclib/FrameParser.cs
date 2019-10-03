@@ -63,7 +63,10 @@ namespace quicsharp
                 }
 
                 if (results[results.Count - 1] != null)
-                    i += results[results.Count - 1].Decode(content_, i);
+                {
+                    int bitRead = results[results.Count - 1].Decode(content_, i);
+                    i += (bitRead / 8);
+                }
             }
 
             return results;

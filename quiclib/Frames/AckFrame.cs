@@ -44,7 +44,7 @@ namespace quicsharp.Frames
             read += ECT1.Decode(beginBits + read, content);
             read += ECN_CE.Decode(beginBits + read, content);
 
-            return (read / 8);
+            return read;
         }
 
         public override byte[] Encode()

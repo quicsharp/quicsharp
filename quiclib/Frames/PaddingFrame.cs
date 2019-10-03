@@ -15,7 +15,7 @@ namespace quicsharp.Frames
             if (content[begin] != Type)
                 throw new ArgumentException("Wrong frame type created");
 
-            return 1;
+            return 8;
         }
 
         public override byte[] Encode()
