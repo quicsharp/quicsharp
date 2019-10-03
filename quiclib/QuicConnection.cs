@@ -9,5 +9,7 @@ namespace quicsharp
     {
         private IPEndPoint endpoint_;
         private UInt32 id_;
+
+        private PacketManager packetManager_;
     }
 }

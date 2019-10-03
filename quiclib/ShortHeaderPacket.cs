@@ -63,7 +63,7 @@ namespace quicsharp
             Packet.WriteBit(spinBit_, packet, Spin);
             Packet.WriteBit(keyPhaseBit_, packet, KeyPhase);
 
-            Packet.WriteUInt32(destinationConnectionIDBit_, packet, CreateDestinationConnectionID());
+            Packet.WriteUInt32(destinationConnectionIDBit_, packet, DestinationConnectionID);
 
             Packet.WriteBit(packetLengthBit_, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
             Packet.WriteBit(packetLengthBit_ + 1, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
@@ -83,12 +83,6 @@ namespace quicsharp
             PacketNumberLengthByte += (Packet.ReadBit(packetLengthBit_, data)) ? 2 : 0;
 
             PacketNumberLengthByte += 1;
-        }
-
-        private UInt32 CreateDestinationConnectionID()
-        {
-            // TODO
-            return 42;
         }
     }
 }
