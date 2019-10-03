@@ -8,13 +8,12 @@ namespace quicsharp
     public class ShortHeaderPacket : Packet
     {
         protected new static int packetHeaderSize_ = 9;
-        public bool Spin;
-        public bool KeyPhase;
-        public int PacketNumberLengthByte;
+        public bool Spin = false;
+        public bool KeyPhase = false;
+        public int PacketNumberLengthByte = 4;
 
-        // For our use case, this size is fixed to 4 bytes;
-        public UInt32 DestinationConnectionID;
-        public int PacketNumber;
+        public UInt32 DestinationConnectionID = 0;
+        public UInt64 PacketNumber = 0;
 
 
         private int spinBit_ = 2;
@@ -48,7 +47,7 @@ namespace quicsharp
             DecodePacketNumberLengthByte(data);
 
             DestinationConnectionID = Packet.ReadUInt32(destinationConnectionIDBit_, data);
-            PacketNumber = Packet.ReadNBits(packetNumberBit_, data, PacketNumberLengthByte * 8);
+            PacketNumber = (UInt64)Packet.ReadNBits(packetNumberBit_, data, PacketNumberLengthByte * 8);
 
             Payload = new byte[data.Length - packetHeaderSize_];
             Array.Copy(data, packetHeaderSize_, Payload, 0, Payload.Length);
@@ -67,10 +66,10 @@ namespace quicsharp
             Packet.WriteBit(spinBit_, packet, Spin);
             Packet.WriteBit(keyPhaseBit_, packet, KeyPhase);
 
-            Packet.WriteUInt32(destinationConnectionIDBit_, packet, DestinationConnectionID);
-
             Packet.WriteBit(packetLengthBit_, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
-            Packet.WriteBit(packetLengthBit_ + 1, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
+            Packet.WriteBit(packetLengthBit_ + 1, packet, ((PacketNumberLengthByte - 1) % 2) == 1);
+
+            Packet.WriteUInt32(destinationConnectionIDBit_, packet, DestinationConnectionID);
 
             // TODO: Write N bits
             Packet.WriteUInt32(packetNumberBit_, packet, Convert.ToUInt32(PacketNumber));
