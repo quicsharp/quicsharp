@@ -5,7 +5,7 @@ using System.Text;
 namespace quicsharp
 {
     // QUIC IETF draft 17.3
-    class ShortHeaderPacket : Packet
+    public class ShortHeaderPacket : Packet
     {
         protected new static int packetHeaderSize_ = 9;
         public bool Spin;
