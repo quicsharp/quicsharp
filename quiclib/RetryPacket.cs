@@ -56,8 +56,17 @@ namespace quicsharp
 
         }
 
+        public override byte[] Encode()
+        {
+            byte[] packet = base.Encode();
+            WriteBit(2, packet, true);
+            WriteBit(3, packet, true);
 
+            WriteNByteFromInt(ODCIDLengthBitsIndex_, packet, (uint)ODCIDLength, 1);
+            WriteUInt32(ODCIDBitsIndex_, packet, ODCID);
 
-
+            Array.Copy(RetryToken, 0, packet, tokenBitsIndex_, RetryToken.Length);
+            return packet;
+        }
     }
 }
