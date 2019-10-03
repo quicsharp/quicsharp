@@ -51,9 +51,7 @@ namespace quicsharp
                         p = new RetryPacket();
                         break;
                     default:
-                        p = new LongHeaderPacket();
-                        Console.WriteLine("Congrats to anyone managing to encode any value other than 0, 1, 2 or 3 on 2 bits");
-                        break;
+                        throw new ArgumentException("2 Bit-encoded uint is not amongst {0, 1, 2, 3} : mathematics are broken and life is lawless");
                 }
                 p.Decode(data);
             }
@@ -125,6 +123,21 @@ namespace quicsharp
             {
                 bool b = ((toWrite >> i) % 2 == 1);
                 WriteBit(indexBegin + 31 -  i, data, b);
+            }
+        }
+
+        public static void WriteByteFromInt(int indexBegin, byte[] data, int toWrite)
+        {
+            if (data.Length <= (indexBegin / 8) + 4)
+                throw new AccessViolationException("QUIC packet too small");
+
+            if (toWrite > 255)
+                throw new ArgumentException($"The following int can not be converted into one byte {toWrite}");
+
+            for (int i = 0; i < 8; i++)
+            {
+                bool b = ((toWrite >> i) % 2 == 1);
+                WriteBit(indexBegin + 31 - i, data, b);
             }
         }
 
