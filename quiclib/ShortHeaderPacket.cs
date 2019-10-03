@@ -28,7 +28,7 @@ namespace quicsharp
                 throw new AccessViolationException("QUIC packet too small for a ShortHeaderPacket");
 
             // TODO: Remove
-            ClientId = BitConverter.ToUInt32(data, 0);
+            ClientId = 42;
 
             /* 
                +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -50,16 +50,20 @@ namespace quicsharp
             DestinationConnectionID = Packet.ReadUInt32(destinationConnectionIDBit_, data);
             PacketNumber = Packet.ReadNBits(packetNumberBit_, data, PacketNumberLengthByte * 8);
 
-            Payload = new byte[data.Length - packetHeaderSize_ - PacketNumberLengthByte];
-            Array.Copy(data, packetHeaderSize_ + PacketNumberLengthByte, Payload, 0, Payload.Length);
+            Payload = new byte[data.Length - packetHeaderSize_];
+            Array.Copy(data, packetHeaderSize_, Payload, 0, Payload.Length);
         }
 
         public override byte[] Encode()
         {
-            byte[] packet = new byte[packetHeaderSize_ + 4 + Payload.Length];
+            Payload = EncodeFrames();
+            byte[] packet = new byte[packetHeaderSize_ + Payload.Length];
+
 
             Packet.WriteBit(0, packet, false);
+
             Packet.WriteBit(1, packet, true);
+
             Packet.WriteBit(spinBit_, packet, Spin);
             Packet.WriteBit(keyPhaseBit_, packet, KeyPhase);
 
@@ -71,7 +75,7 @@ namespace quicsharp
             // TODO: Write N bits
             Packet.WriteUInt32(packetNumberBit_, packet, Convert.ToUInt32(PacketNumber));
 
-            Payload.CopyTo(packet, packetHeaderSize_ + 4);
+            Payload.CopyTo(packet, packetHeaderSize_);
                
 
             return packet;

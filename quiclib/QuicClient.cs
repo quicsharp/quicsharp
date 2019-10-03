@@ -3,6 +3,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
+using quicsharp.Frames;
+
 namespace quicsharp
 {
     public class QuicClient
@@ -19,10 +21,13 @@ namespace quicsharp
         // Connect to a remote server.
         public void Connect(string ip, int port)
         {
-            byte[] pack = { 0, 0, 1, 0, 0, 0, 0, 0, 0 };
-            Array.Copy(Encoding.Default.GetBytes("Hello"), 0, pack, 4, 5);
+            ShortHeaderPacket pack = new ShortHeaderPacket();
+            pack.PacketNumber = 1;
+            pack.AddFrame(new DebugFrame { Message = "Hello" });
 
-            client_.Send(pack, pack.Length, ip, port);
+            byte[] bytePacket = pack.Encode();
+
+            client_.Send(bytePacket, bytePacket.Length, ip, port);
         }
 
         public int Send(byte[] payload)

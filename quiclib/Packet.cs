@@ -9,6 +9,7 @@ namespace quicsharp
     {
         public byte[] Payload;
         public UInt32 ClientId;
+        public List<Frame> Frames { get; protected set; } = new List<Frame>();
 
         // Byte
         protected static int packetHeaderSize_ = 4;
@@ -41,11 +42,36 @@ namespace quicsharp
             return p;
         }
 
+        public virtual void DecodeFrames()
+        {
+            if (Payload.Length == 0)
+                throw new ArgumentException("The payload is empty. Can't decode frames");
+
+            FrameParser fp = new FrameParser(Payload);
+
+            Frames = fp.GetFrames();
+        }
+
+        public virtual void AddFrame(Frame frame)
+        {
+            Frames.Add(frame);
+        }
+
+        public virtual byte[] EncodeFrames()
+        {
+            List<byte> result = new List<byte>();
+            foreach (Frame frame in Frames)
+            {
+                result.AddRange(frame.Encode());
+            }
+
+            return result.ToArray();
+        }
+
         public static void WriteBit(int index, byte[] data, bool b)
         {
             if (data.Length <= index / 8)
                 throw new AccessViolationException("QUIC packet too small");
-
 
             if (!b)
             {
@@ -89,7 +115,7 @@ namespace quicsharp
                 throw new AccessViolationException("QUIC packet too small");
 
             // True if the bit n index is true
-            return (data[index / 8] >> (index % 8)) % 2 == 1;
+            return (data[index / 8] >> (7 - (index % 8))) % 2 == 1;
         }
 
         public static int ReadNBits(int indexBegin, byte[] data, int n)
