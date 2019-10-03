@@ -107,9 +107,5 @@ namespace quicsharp
             Array.Copy(Payload, 0, packet, packetNumberBitsIndex_ + PacketNumberLength * 8, Payload.Length);
             return packet;
         }
-
-
-
-
     }
 }

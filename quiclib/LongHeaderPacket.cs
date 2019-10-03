@@ -83,6 +83,5 @@ namespace quicsharp
             // payload encoding is left to type-speficic classes
             return packet;
         }
-
     }
 }
