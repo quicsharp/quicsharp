@@ -47,7 +47,7 @@ namespace quicsharp
                 throw new ArgumentException("Wrong Packet type");
             ReservedBits = ReadNBits(reservedBitsIndex_, data, 2);
 
-            PacketNumberLength = ReadNBits(packetNumberLengthBitsIndex_, data, 2);
+            PacketNumberLength = ReadNBits(packetNumberLengthBitsIndex_, data, 2) + 1;
 
             // TODO : refactor once we made a class for variable-length integers + refactor bit reading/writing methods
             (packetNumberBitsIndex_, Length) = ReadVariableLengthInteger(payloadStartBit_, data);

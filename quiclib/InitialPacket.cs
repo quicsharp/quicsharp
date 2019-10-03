@@ -54,7 +54,7 @@ namespace quicsharp
                 throw new ArgumentException("Wrong Packet type");
             ReservedBits = ReadNBits(reservedBitsIndex_, data, 2);
 
-            PacketNumberLength = ReadNBits(packetNumberLengthBitsIndex_, data, 2);
+            PacketNumberLength = ReadNBits(packetNumberLengthBitsIndex_, data, 2) + 1;
 
             (tokenBitsIndex_, TokenLength) = ReadVariableLengthInteger(payloadStartBit_, data);
             Token = ReadNBytes(tokenBitsIndex_, data, TokenLength);
