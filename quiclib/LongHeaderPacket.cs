@@ -73,11 +73,11 @@ namespace quicsharp
 
             WriteUInt32(versionBit_, packet, Version);
 
-            WriteByteFromInt(DCIDLengthBit_, packet, DCIDLength);
+            WriteNByteFromInt(DCIDLengthBit_, packet, (uint)DCIDLength, 1);
             WriteUInt32(destinationConnectionIdBit_, packet, DCID);
 
 
-            WriteByteFromInt(SCIDLengthBit_, packet, SCIDLength);
+            WriteNByteFromInt(SCIDLengthBit_, packet, (uint)SCIDLength, 1);
             WriteUInt32(sourceConnectionIdBit_, packet, SCID);
 
             // payload encoding is left to type-speficic classes
