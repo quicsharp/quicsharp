@@ -126,18 +126,18 @@ namespace quicsharp
             }
         }
 
-        public static void WriteByteFromInt(int indexBegin, byte[] data, int toWrite)
+        public static void WriteNByteFromInt(int indexBegin, byte[] data, uint toWrite, int n)
         {
             if (data.Length <= (indexBegin / 8) + 4)
                 throw new AccessViolationException("QUIC packet too small");
 
-            if (toWrite > 255)
-                throw new ArgumentException($"The following int can not be converted into one byte {toWrite}");
+            if (toWrite > Math.Pow(2, (8*n)) - 1)
+                throw new ArgumentException($"The following int can not be converted into {n} byte : {toWrite}");
 
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 8*n; i++)
             {
                 bool b = ((toWrite >> i) % 2 == 1);
-                WriteBit(indexBegin + 31 - i, data, b);
+                WriteBit(indexBegin + (8 * n) - 1 - i, data, b);
             }
         }
 
@@ -190,25 +190,6 @@ namespace quicsharp
             UInt64 ret = (UInt64)Packet.ReadNBits(indexBegin, data, 64);
 
             return ret;
-        }
-
-        public static (int, dynamic) ReadVariableLengthInteger(int indexBegin, byte[] data)
-        {
-            // See section 16 of QUIC IETF Draft on variable-length integer encoding
-            switch(ReadNBits(indexBegin, data, 2))
-            {
-                case 0:
-                    return (indexBegin + 8, ReadByte(indexBegin, data));
-                case 1:
-                    return (indexBegin + 16, ReadNBits(indexBegin, data, 16) % (1 << 14));
-                case 2:
-                    return (indexBegin + 32, ReadUInt32(indexBegin, data) % (1 << 30));
-                case 3:
-                    return (indexBegin + 64, ReadUInt64(indexBegin, data) % (1 << 62));
-                default:
-                    break;
-            }
-            throw new ArgumentException("2 Bit-encoded uint is not amongst {0, 1, 2, 3} : mathematics are broken and life is lawless");
         }
 
         public virtual void Decode(byte[] data)
