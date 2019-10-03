@@ -4,9 +4,9 @@ using System.Text;
 
 namespace quicsharp
 {
-    sealed class RTTPacket : LongHeaderPacket
+    public sealed class RTTPacket : LongHeaderPacket
     {
-        public int ReservedBits;
+        public int ReservedBits = 0;
         public int PacketNumberLength;
         public UInt32 PacketNumber;
         public VariableLengthInteger Length;

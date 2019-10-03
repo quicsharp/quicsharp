@@ -5,7 +5,7 @@ using System.Text;
 
 namespace quicsharp
 {
-    class Packet
+    public class Packet
     {
         public byte[] Payload;
         public UInt32 ClientId;

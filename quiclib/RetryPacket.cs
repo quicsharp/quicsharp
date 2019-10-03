@@ -4,7 +4,7 @@ using System.Text;
 
 namespace quicsharp
 {
-    sealed class RetryPacket : LongHeaderPacket
+    public sealed class RetryPacket : LongHeaderPacket
     {
         public byte[] RetryToken;
         public int ODCIDLength;
