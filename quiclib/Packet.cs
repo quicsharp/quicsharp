@@ -34,8 +34,27 @@ namespace quicsharp
             else
             {
                 // Long Header Packet
-                p = new LongHeaderPacker();
-
+                if (!Packet.ReadBit(1, data))
+                    throw new ArgumentException("Corrupted packet");
+                switch (Packet.ReadNBits(2, data, 2))
+                {
+                    case 0:
+                        p = new InitialPacket();
+                        break;
+                    case 1:
+                        p = new RTTPacket();
+                        break;
+                    case 2:
+                        p = new HandshakePacket();
+                        break;
+                    case 3:
+                        p = new RetryPacket();
+                        break;
+                    default:
+                        p = new LongHeaderPacket();
+                        Console.WriteLine("Congrats to anyone managing to encode any value other than 0, 1, 2 or 3 on 2 bits");
+                        break;
+                }
                 p.Decode(data);
             }
 
@@ -137,11 +156,46 @@ namespace quicsharp
             return ret;
         }
 
+        public static int ReadByte(int indexBegin, byte[] data)
+        {
+            return ReadNBits(indexBegin, data, 8);
+        }
+
+        public static int ReadNBytes(int indexBegin, byte[] data, int n)
+        {
+            return ReadNBits(indexBegin, data, n*8);
+        }
+
         public static UInt32 ReadUInt32(int indexBegin, byte[] data)
         {
             UInt32 ret = (UInt32)Packet.ReadNBits(indexBegin, data, 32);
 
             return ret;
+        }
+        public static UInt64 ReadUInt64(int indexBegin, byte[] data)
+        {
+            UInt64 ret = (UInt64)Packet.ReadNBits(indexBegin, data, 64);
+
+            return ret;
+        }
+
+        public static (int, dynamic) ReadVariableLengthInteger(int indexBegin, byte[] data)
+        {
+            // See section 16 of QUIC IETF Draft on variable-length integer encoding
+            switch(ReadNBits(indexBegin, data, 2))
+            {
+                case 0:
+                    return (indexBegin + 8, ReadByte(indexBegin, data));
+                case 1:
+                    return (indexBegin + 16, ReadNBits(indexBegin, data, 16) % (1 << 14));
+                case 2:
+                    return (indexBegin + 32, ReadUInt32(indexBegin, data) % (1 << 30));
+                case 3:
+                    return (indexBegin + 64, ReadUInt64(indexBegin, data) % (1 << 62));
+                default:
+                    break;
+            }
+            throw new ArgumentException("2 Bit-encoded uint is not amongst {0, 1, 2, 3} : mathematics are broken and life is lawless");
         }
 
         public virtual void Decode(byte[] data)
