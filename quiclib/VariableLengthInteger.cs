@@ -4,7 +4,7 @@ using System.Text;
 
 namespace quicsharp
 {
-    class VariableLengthInteger
+    public class VariableLengthInteger
     {
         public int Size { get; private set; }
 
@@ -38,7 +38,7 @@ namespace quicsharp
             }
         }
 
-        VariableLengthInteger(UInt64 val)
+        public VariableLengthInteger(UInt64 val)
         {
             Value = val;
         }
@@ -52,7 +52,7 @@ namespace quicsharp
 
             UInt64 v = value_;
 
-            for (int i = encoded.Length - 1; i > 1; i--)
+            for (int i = (encoded.Length * 8) - 1; i > 1; i--)
             {
                 Packet.WriteBit(i, encoded, (v % 2) == 1);
                 v = v >> 1;
@@ -87,6 +87,7 @@ namespace quicsharp
                 default:
                     throw new Exception();
             }
+            Console.WriteLine(value_);
 
             return Size * 8;
         }
