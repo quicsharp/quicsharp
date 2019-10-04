@@ -9,6 +9,7 @@ namespace quicsharp
         public int Size { get; private set; }
 
         private UInt64 value_;
+
         public UInt64 Value
         {
             get
@@ -38,9 +39,14 @@ namespace quicsharp
             }
         }
 
-        VariableLengthInteger(UInt64 val)
+        public VariableLengthInteger(UInt64 val = 0)
         {
             Value = val;
+        }
+
+        public VariableLengthInteger(int v = 0)
+        {
+            Value = (UInt64)v;
         }
 
         public byte[] Encode()
