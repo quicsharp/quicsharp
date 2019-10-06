@@ -5,7 +5,7 @@ using System.Text;
 
 namespace quicsharp
 {
-    class Packet
+    public class Packet
     {
         public byte[] Payload;
         public UInt32 ClientId;
@@ -34,8 +34,25 @@ namespace quicsharp
             else
             {
                 // Long Header Packet
-                p = new LongHeaderPacker();
-
+                if (!Packet.ReadBit(1, data))
+                    throw new ArgumentException("Corrupted packet");
+                switch (Packet.ReadNBits(2, data, 2))
+                {
+                    case 0:
+                        p = new InitialPacket();
+                        break;
+                    case 1:
+                        p = new RTTPacket();
+                        break;
+                    case 2:
+                        p = new HandshakePacket();
+                        break;
+                    case 3:
+                        p = new RetryPacket();
+                        break;
+                    default:
+                        throw new ArgumentException("2 Bit-encoded uint is not amongst {0, 1, 2, 3} : mathematics are broken and life is lawless");
+                }
                 p.Decode(data);
             }
 
@@ -109,6 +126,21 @@ namespace quicsharp
             }
         }
 
+        public static void WriteNByteFromInt(int indexBegin, byte[] data, uint toWrite, int n)
+        {
+            if (data.Length <= (indexBegin / 8) + 4)
+                throw new AccessViolationException("QUIC packet too small");
+
+            if (toWrite > Math.Pow(2, (8*n)) - 1)
+                throw new ArgumentException($"The following int can not be converted into {n} byte : {toWrite}");
+
+            for (int i = 0; i < 8*n; i++)
+            {
+                bool b = ((toWrite >> i) % 2 == 1);
+                WriteBit(indexBegin + (8 * n) - 1 - i, data, b);
+            }
+        }
+
         public static bool ReadBit(int index, byte[] data)
         {
             if (data.Length <= index / 8)
@@ -137,9 +169,25 @@ namespace quicsharp
             return ret;
         }
 
+        public static int ReadByte(int indexBegin, byte[] data)
+        {
+            return ReadNBits(indexBegin, data, 8);
+        }
+
+        public static int ReadNBytes(int indexBegin, byte[] data, int n)
+        {
+            return ReadNBits(indexBegin, data, n*8);
+        }
+
         public static UInt32 ReadUInt32(int indexBegin, byte[] data)
         {
             UInt32 ret = (UInt32)Packet.ReadNBits(indexBegin, data, 32);
+
+            return ret;
+        }
+        public static UInt64 ReadUInt64(int indexBegin, byte[] data)
+        {
+            UInt64 ret = (UInt64)Packet.ReadNBits(indexBegin, data, 64);
 
             return ret;
         }

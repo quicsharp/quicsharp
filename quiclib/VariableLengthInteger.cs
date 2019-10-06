@@ -4,7 +4,7 @@ using System.Text;
 
 namespace quicsharp
 {
-    class VariableLengthInteger
+    public class VariableLengthInteger
     {
         public int Size { get; private set; }
 

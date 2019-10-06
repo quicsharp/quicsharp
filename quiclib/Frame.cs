@@ -4,7 +4,7 @@ using System.Text;
 
 namespace quicsharp
 {
-    abstract class Frame
+    public abstract class Frame
     {
         // Section 12.3 Table 3
         public abstract byte Type { get; }
