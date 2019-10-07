@@ -25,12 +25,12 @@ namespace quicsharp.Frames
 
         public override int Decode(byte[] content, int begin)
         {
-            if (content.Length < frameLengthBitsMini + begin)
+            if (content.Length < frameLengthBitsMini + (begin / 8))
                 throw new ArgumentException("ACK Frame has a wrong size");
             if (content[begin] != Type)
                 throw new ArgumentException("Wrong frame type created");
 
-            int beginBits = (begin + 1) * 8;
+            int beginBits = begin + 1;
             int read = 0;
 
             read += LargestAcknowledged.Decode(beginBits+ read, content);
@@ -44,7 +44,7 @@ namespace quicsharp.Frames
             read += ECT1.Decode(beginBits + read, content);
             read += ECN_CE.Decode(beginBits + read, content);
 
-            return (read / 8);
+            return read;
         }
 
         public override byte[] Encode()

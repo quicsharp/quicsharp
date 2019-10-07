@@ -24,7 +24,7 @@ namespace quicsharp
             byte frameType = content_[0];
             int i = 0;
 
-            while (i < content_.Length)
+            while (i < content_.Length * 8)
             {
                 switch (frameType)
                 {
@@ -63,7 +63,9 @@ namespace quicsharp
                 }
 
                 if (results[results.Count - 1] != null)
+                {
                     i += results[results.Count - 1].Decode(content_, i);
+                }
             }
 
             return results;
