@@ -6,7 +6,7 @@ namespace quicsharp
 {
     public class VariableLengthInteger
     {
-        public int Size { get; private set; }
+        public int Size { get; private set; } // Number of bits
 
         private UInt64 value_;
 
@@ -22,19 +22,19 @@ namespace quicsharp
                 value_ = value;
                 if (value >= (1 << 30))
                 {
-                    Size = 8;
+                    Size = 64;
                 }
                 else if (value >= (1 << 14))
                 {
-                    Size = 4;
+                    Size = 32;
                 }
                 else if (value >= (1 << 6))
                 {
-                    Size = 2;
+                    Size = 16;
                 }
                 else
                 {
-                    Size = 1;
+                    Size = 8;
                 }
             }
         }
@@ -51,10 +51,10 @@ namespace quicsharp
 
         public byte[] Encode()
         {
-            byte[] encoded = new byte[Size];
+            byte[] encoded = new byte[Size / 8];
 
-            Packet.WriteBit(0, encoded, Size >= 4);
-            Packet.WriteBit(1, encoded, Size == 2 || Size == 8);
+            Packet.WriteBit(0, encoded, Size >= 32);
+            Packet.WriteBit(1, encoded, Size == 16 || Size == 64);
 
             UInt64 v = value_;
 
@@ -75,19 +75,19 @@ namespace quicsharp
             switch (Packet.ReadNBits(indexBegin, data, 2))
             {
                 case 0:
-                    Size = 1;
+                    Size = 8;
                     value_ = (UInt64)Packet.ReadNBits(indexBegin + 2, data, 6);
                     break;
                 case 1:
-                    Size = 2;
+                    Size = 16;
                     value_ = (UInt64)Packet.ReadNBits(indexBegin + 2, data, 14);
                     break;
                 case 2:
-                    Size = 4;
+                    Size = 32;
                     value_ = (UInt64)Packet.ReadNBits(indexBegin + 2, data, 30);
                     break;
                 case 3:
-                    Size = 8;
+                    Size = 64;
                     value_ = (UInt64)Packet.ReadNBits(indexBegin + 2, data, 62);
                     break;
                 default:
@@ -95,7 +95,7 @@ namespace quicsharp
             }
             Console.WriteLine(value_);
 
-            return Size * 8;
+            return Size;
         }
     }
 }

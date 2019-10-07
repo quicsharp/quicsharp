@@ -72,13 +72,14 @@ namespace quicsharp
 
         public override byte[] Encode()
         {
-            byte[] packet = base.Encode();
+            List<byte> l = new List<byte>(base.Encode());
+            byte[] packet = l.ToArray();
             WriteBit(2, packet, false);
             WriteBit(3, packet, false);
             
-            Array.Copy(TokenLength.Encode(), 0, packet, payloadStartBit_, TokenLength.Size * 8);
+            Array.Copy(TokenLength.Encode(), 0, packet, payloadStartBit_ / 8, TokenLength.Size / 8);
             WriteUInt32(tokenBitsIndex_, packet, Token);
-            Array.Copy(Length.Encode(), 0, packet, tokenBitsIndex_ + 32, Length.Size * 8);
+            Array.Copy(Length.Encode(), 0, packet, (tokenBitsIndex_ + 32 ) / 8, Length.Size / 8);
 
             switch (PacketNumberLength)
             {

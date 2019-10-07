@@ -67,7 +67,8 @@ namespace quicsharp
 
         public override byte[] Encode()
         {
-            byte[] packet = new byte[packetHeaderSize_ + Payload.Length];
+            Payload = EncodeFrames();
+            byte[] packet = new byte[packetHeaderSize_];
             WriteBit(0, packet, true);
             WriteBit(1, packet, true);
 
