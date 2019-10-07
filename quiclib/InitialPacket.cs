@@ -9,9 +9,9 @@ namespace quicsharp
         public int ReservedBits = 0;
         public int PacketNumberLength;
         public UInt32 PacketNumber;
-        public VariableLengthInteger TokenLength;
+        public VariableLengthInteger TokenLength = new VariableLengthInteger(0);
         public UInt32 Token;
-        public VariableLengthInteger Length;
+        public VariableLengthInteger Length = new VariableLengthInteger(0);
         public byte[] Payload;
 
         private static int reservedBitsIndex_ = 4;
@@ -57,11 +57,11 @@ namespace quicsharp
             PacketNumberLength = ReadNBits(packetNumberLengthBitsIndex_, data, 2) + 1;
 
             TokenLength.Decode(payloadStartBit_, data);
-            tokenBitsIndex_ = payloadStartBit_ + TokenLength.Size * 8;
+            tokenBitsIndex_ = payloadStartBit_ + TokenLength.Size;
 
             Token = ReadUInt32(tokenBitsIndex_, data);
 
-
+            Console.WriteLine($"Decode length at {tokenBitsIndex_ + 32}");
             Length.Decode(tokenBitsIndex_ + 32, data);
             packetNumberBitsIndex_ = tokenBitsIndex_ + 32 + Length.Size * 8;
             PacketNumber = (uint)ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength * 8);
@@ -72,14 +72,36 @@ namespace quicsharp
 
         public override byte[] Encode()
         {
-            List<byte> l = new List<byte>(base.Encode());
-            byte[] packet = l.ToArray();
+            List<byte> lpack = new List<byte>(base.Encode());
+
+            foreach (byte b in lpack.ToArray())
+            {
+                Console.Write($"{b} | ");
+            }
+            Console.WriteLine("\n-----");
+
+            Payload = EncodeFrames();
+
+            lpack.AddRange(TokenLength.Encode());
+            //Array.Copy(TokenLength.Encode(), 0, packet, payloadStartBit_ / 8, TokenLength.Size / 8);
+            tokenBitsIndex_ = lpack.Count * 8;
+            lpack.AddRange(Length.Encode());
+            packetNumberBitsIndex_ = lpack.Count * 8;
+            //Array.Copy(Length.Encode(), 0, packet, (tokenBitsIndex_ + 32 ) / 8, Length.Size / 8);
+
+            lpack.AddRange(new byte[PacketNumberLength + 1]);
+            lpack.AddRange(Payload);
+            byte[] packet = lpack.ToArray();
+            Console.WriteLine(packet[0]);
             WriteBit(2, packet, false);
+            Console.WriteLine(packet[0]);
             WriteBit(3, packet, false);
-            
-            Array.Copy(TokenLength.Encode(), 0, packet, payloadStartBit_ / 8, TokenLength.Size / 8);
+            Console.WriteLine(packet[0]);
+
             WriteUInt32(tokenBitsIndex_, packet, Token);
-            Array.Copy(Length.Encode(), 0, packet, (tokenBitsIndex_ + 32 ) / 8, Length.Size / 8);
+            Console.WriteLine(packet[0]);
+
+            Console.WriteLine($"Writing {PacketNumber} at {packetNumberBitsIndex_}");
 
             switch (PacketNumberLength)
             {
@@ -105,7 +127,12 @@ namespace quicsharp
                     break;
             }
 
-            Array.Copy(Payload, 0, packet, packetNumberBitsIndex_ + PacketNumberLength * 8, Payload.Length);
+            foreach (byte b in packet)
+            {
+                Console.Write($"{b} | ");
+            }
+            Console.WriteLine("\n-----");
+
             return packet;
         }
     }

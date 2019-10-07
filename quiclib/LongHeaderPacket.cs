@@ -44,7 +44,13 @@ namespace quicsharp
         public override void Decode(byte[] data)
         {
             if (data.Length < packetHeaderSize_)
-                throw new AccessViolationException("QUIC packet too small for a ShortHeaderPacket");
+                throw new AccessViolationException("QUIC packet too small for a LongHeaderPacket");
+
+            foreach (byte b in data)
+            {
+                Console.Write($"{b} | ");
+            }
+            Console.WriteLine("\n-----");
 
             PacketType = ReadNBits(packetTypeBit_, data, 2);
             // Next 4 bits are apcket specific and will be tended to in their own class.
@@ -57,17 +63,16 @@ namespace quicsharp
 
             SCIDLength = ReadByte(SCIDLengthBit_, data);
             if (SCIDLength != 4)
-                throw new ArgumentException(" In our implementation, we limit ourselves to 32 bits Destination connection IDs");
+                throw new ArgumentException("In our implementation, we limit ourselves to 32 bits Destination connection IDs");
             else if(SCIDLength > 20)
             SCID = ReadUInt32(sourceConnectionIdBit_, data);
 
-            Payload = new byte[data.Length - payloadStartBit_];
-            Array.Copy(data, payloadStartBit_, Payload, 0, Payload.Length);
+            Payload = new byte[data.Length - (payloadStartBit_ / 8)];
+            Array.Copy(data, payloadStartBit_ / 8, Payload, 0, Payload.Length);
         }
 
         public override byte[] Encode()
         {
-            Payload = EncodeFrames();
             byte[] packet = new byte[packetHeaderSize_];
             WriteBit(0, packet, true);
             WriteBit(1, packet, true);
@@ -80,6 +85,12 @@ namespace quicsharp
 
             WriteNByteFromInt(SCIDLengthBit_, packet, (uint)SCIDLength, 1);
             WriteUInt32(sourceConnectionIdBit_, packet, SCID);
+
+            foreach (byte b in packet)
+            {
+                Console.Write($"{b} | ");
+            }
+            Console.WriteLine("\n-----");
 
             // payload encoding is left to type-speficic classes
             return packet;

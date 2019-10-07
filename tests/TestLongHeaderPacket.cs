@@ -12,9 +12,15 @@ namespace quicsharp.tests
         [TestMethod]
         public void TestInitialPacket()
         {
-            InitialPacket sentP = new InitialPacket { ClientId = 1, DCIDLength = 2, DCID = 4321, PacketNumberLength = 2, PacketNumber = 1234, TokenLength = new VariableLengthInteger(3), Token = 4242, Length = new VariableLengthInteger(5)};
+            InitialPacket sentP = new InitialPacket { ClientId = 1, DCIDLength = 4, DCID = 4321, PacketNumberLength = 2, SCIDLength = 4, PacketNumber = 1234, TokenLength = new VariableLengthInteger(3), Token = 4242, Length = new VariableLengthInteger(5)};
 
             byte[] b = sentP.Encode();
+
+            foreach(byte bb in b)
+            {
+                Console.Write($"{bb} | ");
+            }
+            Console.WriteLine("\n-----");
 
             Packet p = Packet.Unpack(b);
 
@@ -22,8 +28,9 @@ namespace quicsharp.tests
             InitialPacket recP = p as InitialPacket;
 
             Assert.AreEqual(1, recP.ClientId);
-            Assert.AreEqual(2, recP.DCIDLength);
+            Assert.AreEqual(4, recP.DCIDLength);
             Assert.AreEqual(4321, recP.DCID);
+            Assert.AreEqual(4, recP.SCIDLength);
             Assert.AreEqual(2, recP.PacketNumberLength);
             Assert.AreEqual(1234, recP.PacketNumber);
             Assert.AreEqual(3, recP.TokenLength.Value);
