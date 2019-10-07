@@ -116,7 +116,7 @@ namespace quicsharp
 
         public static void WriteUInt32(int indexBegin, byte[] data, UInt32 toWrite)
         {
-            if (data.Length <= (indexBegin / 8) + 4)
+            if (data.Length < (indexBegin / 8) + 4)
                 throw new AccessViolationException("QUIC packet too small");
 
             for (int i = 0; i < 32; i++)

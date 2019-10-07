@@ -5,7 +5,7 @@ using System.Text;
 namespace quicsharp.Frames
 {
     // Frame used for debugging
-    class DebugFrame : Frame
+    public class DebugFrame : Frame
     {
         public override byte Type => 0x1e;
         public string Message;

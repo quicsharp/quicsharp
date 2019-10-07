@@ -58,7 +58,7 @@ namespace quicsharp
 
             UInt64 v = value_;
 
-            for (int i = encoded.Length - 1; i > 1; i--)
+            for (int i = (encoded.Length * 8) - 1; i > 1; i--)
             {
                 Packet.WriteBit(i, encoded, (v % 2) == 1);
                 v = v >> 1;
@@ -93,6 +93,7 @@ namespace quicsharp
                 default:
                     throw new Exception();
             }
+            Console.WriteLine(value_);
 
             return Size * 8;
         }
