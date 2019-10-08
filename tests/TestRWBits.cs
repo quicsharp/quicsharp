@@ -13,7 +13,7 @@ namespace quicsharp.tests
         {
             byte[] b = new byte[] { 0, 0, 0 };
 
-            Packet.WriteBit(10, b, true);
+            BitUtils.WriteBit(10, b, true);
 
             Assert.AreEqual(b[1], (1 << 5));
         }
@@ -26,9 +26,9 @@ namespace quicsharp.tests
             for (int i = 0; i < 24; i++)
             {
                 if (i == 9)
-                    Assert.IsTrue(Packet.ReadBit(i, b));
+                    Assert.IsTrue(BitUtils.ReadBit(i, b));
                 else
-                    Assert.IsFalse(Packet.ReadBit(i, b));
+                    Assert.IsFalse(BitUtils.ReadBit(i, b));
             }
         }
 
@@ -38,7 +38,7 @@ namespace quicsharp.tests
             UInt32 n = 128;
             byte[] data = new byte[5];
 
-            Packet.WriteUInt32(8, data, n);
+            BitUtils.WriteUInt32(8, data, n);
 
             Assert.AreEqual(data[4], (1 << 7));
         }
@@ -48,7 +48,7 @@ namespace quicsharp.tests
         {
             byte[] b = new byte[] { 0, 64, 0, 0, 1, 0, 64};
 
-            UInt32 n = Packet.ReadUInt32(16, b);
+            UInt32 n = BitUtils.ReadUInt32(16, b);
 
             Assert.AreEqual(n, (UInt32)256);
         }

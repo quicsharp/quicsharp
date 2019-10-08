@@ -7,8 +7,8 @@ namespace quicsharp
     public sealed class RetryPacket : LongHeaderPacket
     {
         public byte[] RetryToken;
-        public int ODCIDLength;
-        public UInt32 ODCID;
+        public uint ODCIDLength;
+        public uint ODCID;
 
         private static int ODCIDLengthBitsIndex_ = 120;
         private static int ODCIDBitsIndex_ = 128;
@@ -45,11 +45,11 @@ namespace quicsharp
             if (PacketType != 3)
                 throw new ArgumentException("Wrong Packet type");
 
-            ODCIDLength = ReadByte(ODCIDLengthBitsIndex_, data);
+            ODCIDLength = BitUtils.ReadByte(ODCIDLengthBitsIndex_, data);
             if (ODCIDLength != 4)
                 throw new ArgumentException(" In our implementation, we limit ourselves to 32 bits Destination connection IDs");
             else if (ODCIDLength > 20)
-                ODCID = ReadUInt32(ODCIDBitsIndex_, data);
+                ODCID = BitUtils.ReadUInt32(ODCIDBitsIndex_, data);
 
             RetryToken = new byte[data.Length - tokenBitsIndex_];
             Array.Copy(data, tokenBitsIndex_, Payload, 0, Payload.Length);
@@ -59,11 +59,11 @@ namespace quicsharp
         public override byte[] Encode()
         {
             byte[] packet = base.Encode();
-            WriteBit(2, packet, true);
-            WriteBit(3, packet, true);
+            BitUtils.WriteBit(2, packet, true);
+            BitUtils.WriteBit(3, packet, true);
 
-            WriteNByteFromInt(ODCIDLengthBitsIndex_, packet, (uint)ODCIDLength, 1);
-            WriteUInt32(ODCIDBitsIndex_, packet, ODCID);
+            BitUtils.WriteNByteFromInt(ODCIDLengthBitsIndex_, packet, (uint)ODCIDLength, 1);
+            BitUtils.WriteUInt32(ODCIDBitsIndex_, packet, ODCID);
 
             Array.Copy(RetryToken, 0, packet, tokenBitsIndex_, RetryToken.Length);
             return packet;

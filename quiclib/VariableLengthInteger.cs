@@ -53,14 +53,14 @@ namespace quicsharp
         {
             byte[] encoded = new byte[Size / 8];
 
-            Packet.WriteBit(0, encoded, Size >= 32);
-            Packet.WriteBit(1, encoded, Size == 16 || Size == 64);
+            BitUtils.WriteBit(0, encoded, Size >= 32);
+            BitUtils.WriteBit(1, encoded, Size == 16 || Size == 64);
 
             UInt64 v = value_;
 
             for (int i = (encoded.Length * 8) - 1; i > 1; i--)
             {
-                Packet.WriteBit(i, encoded, (v % 2) == 1);
+                BitUtils.WriteBit(i, encoded, (v % 2) == 1);
                 v = v >> 1;
             }
 
@@ -72,23 +72,23 @@ namespace quicsharp
             // TODO: Check input
             Size = 0;
            
-            switch (Packet.ReadNBits(indexBegin, data, 2))
+            switch (BitUtils.ReadNBits(indexBegin, data, 2))
             {
                 case 0:
                     Size = 8;
-                    value_ = (UInt64)Packet.ReadNBits(indexBegin + 2, data, 6);
+                    value_ = BitUtils.ReadNBits(indexBegin + 2, data, 6);
                     break;
                 case 1:
                     Size = 16;
-                    value_ = (UInt64)Packet.ReadNBits(indexBegin + 2, data, 14);
+                    value_ = BitUtils.ReadNBits(indexBegin + 2, data, 14);
                     break;
                 case 2:
                     Size = 32;
-                    value_ = (UInt64)Packet.ReadNBits(indexBegin + 2, data, 30);
+                    value_ = BitUtils.ReadNBits(indexBegin + 2, data, 30);
                     break;
                 case 3:
                     Size = 64;
-                    value_ = (UInt64)Packet.ReadNBits(indexBegin + 2, data, 62);
+                    value_ = BitUtils.LongReadNBits(indexBegin + 2, data, 62);
                     break;
                 default:
                     throw new Exception();
