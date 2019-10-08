@@ -47,25 +47,27 @@ namespace quicsharp
 
             ODCIDLength = BitUtils.ReadByte(ODCIDLengthBitsIndex_, data);
             if (ODCIDLength != 4)
-                throw new ArgumentException(" In our implementation, we limit ourselves to 32 bits Destination connection IDs");
-            else if (ODCIDLength > 20)
-                ODCID = BitUtils.ReadUInt32(ODCIDBitsIndex_, data);
+                throw new ArgumentException("In our implementation, we limit ourselves to 32 bits Destination connection IDs");
 
-            RetryToken = new byte[data.Length - tokenBitsIndex_];
-            Array.Copy(data, tokenBitsIndex_, Payload, 0, Payload.Length);
+            ODCID = BitUtils.ReadUInt32(ODCIDBitsIndex_, data);
 
+            RetryToken = new byte[data.Length - (tokenBitsIndex_ / 8)];
+            Array.Copy(data, tokenBitsIndex_ / 8, RetryToken, 0, RetryToken.Length);
         }
 
         public override byte[] Encode()
         {
-            byte[] packet = base.Encode();
-            BitUtils.WriteBit(2, packet, true);
-            BitUtils.WriteBit(3, packet, true);
+            List<byte> lpack = new List<byte>(base.Encode());
+
+            lpack.AddRange(new byte[5]); // OCDID length + value
+            lpack.AddRange(RetryToken);
+            byte[] packet = lpack.ToArray();
 
             BitUtils.WriteNByteFromInt(ODCIDLengthBitsIndex_, packet, (uint)ODCIDLength, 1);
             BitUtils.WriteUInt32(ODCIDBitsIndex_, packet, ODCID);
 
-            Array.Copy(RetryToken, 0, packet, tokenBitsIndex_, RetryToken.Length);
+            BitUtils.WriteBit(2, packet, true);
+            BitUtils.WriteBit(3, packet, true);
             return packet;
         }
     }
