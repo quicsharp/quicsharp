@@ -46,12 +46,6 @@ namespace quicsharp
             if (data.Length < packetHeaderSize_)
                 throw new AccessViolationException("QUIC packet too small for a LongHeaderPacket");
 
-            foreach (byte b in data)
-            {
-                Console.Write($"{b} | ");
-            }
-            Console.WriteLine("\n-----");
-
             PacketType = ReadNBits(packetTypeBit_, data, 2);
             // Next 4 bits are apcket specific and will be tended to in their own class.
             Version = ReadUInt32(versionBit_, data);
@@ -85,12 +79,6 @@ namespace quicsharp
 
             WriteNByteFromInt(SCIDLengthBit_, packet, (uint)SCIDLength, 1);
             WriteUInt32(sourceConnectionIdBit_, packet, SCID);
-
-            foreach (byte b in packet)
-            {
-                Console.Write($"{b} | ");
-            }
-            Console.WriteLine("\n-----");
 
             // payload encoding is left to type-speficic classes
             return packet;

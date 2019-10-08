@@ -155,7 +155,7 @@ namespace quicsharp
             int ret = 0;
 
             if (data.Length < (indexBegin + n)/ 8)
-                throw new AccessViolationException($"QUIC packet too small (size: {data.Length * 8}, reading at: {indexBegin})");
+                throw new AccessViolationException($"QUIC packet too small (size: {data.Length * 8}, reading at: {indexBegin} + {n})");
 
             for (int i = 0; i < n; i++)
             {

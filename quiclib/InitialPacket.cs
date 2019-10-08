@@ -61,49 +61,36 @@ namespace quicsharp
 
             Token = ReadUInt32(tokenBitsIndex_, data);
 
-            Console.WriteLine($"Decode length at {tokenBitsIndex_ + 32}");
             Length.Decode(tokenBitsIndex_ + 32, data);
-            packetNumberBitsIndex_ = tokenBitsIndex_ + 32 + Length.Size * 8;
-            PacketNumber = (uint)ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength * 8);
+            packetNumberBitsIndex_ = tokenBitsIndex_ + 32 + Length.Size;
+            PacketNumber = (uint)ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength);
 
-            Payload = new byte[data.Length - packetNumberBitsIndex_ - PacketNumberLength * 8];
-            Array.Copy(data, packetNumberBitsIndex_ + PacketNumberLength * 8, Payload, 0, Payload.Length);
+            Payload = new byte[data.Length - (packetNumberBitsIndex_ / 8) - PacketNumberLength];
+            Array.Copy(data, packetNumberBitsIndex_ / 8 + PacketNumberLength, Payload, 0, Payload.Length);
         }
 
         public override byte[] Encode()
         {
             List<byte> lpack = new List<byte>(base.Encode());
 
-            foreach (byte b in lpack.ToArray())
-            {
-                Console.Write($"{b} | ");
-            }
-            Console.WriteLine("\n-----");
-
             Payload = EncodeFrames();
 
             lpack.AddRange(TokenLength.Encode());
-            //Array.Copy(TokenLength.Encode(), 0, packet, payloadStartBit_ / 8, TokenLength.Size / 8);
+
             tokenBitsIndex_ = lpack.Count * 8;
+            lpack.AddRange(new byte[4]); // Token UInt32
             lpack.AddRange(Length.Encode());
             packetNumberBitsIndex_ = lpack.Count * 8;
-            //Array.Copy(Length.Encode(), 0, packet, (tokenBitsIndex_ + 32 ) / 8, Length.Size / 8);
 
             lpack.AddRange(new byte[PacketNumberLength + 1]);
             lpack.AddRange(Payload);
             byte[] packet = lpack.ToArray();
-            Console.WriteLine(packet[0]);
             WriteBit(2, packet, false);
-            Console.WriteLine(packet[0]);
             WriteBit(3, packet, false);
-            Console.WriteLine(packet[0]);
 
             WriteUInt32(tokenBitsIndex_, packet, Token);
-            Console.WriteLine(packet[0]);
 
-            Console.WriteLine($"Writing {PacketNumber} at {packetNumberBitsIndex_}");
-
-            switch (PacketNumberLength)
+            switch (PacketNumberLength - 1)
             {
                 case 0:
                     WriteBit(6, packet, false);
@@ -126,12 +113,6 @@ namespace quicsharp
                     WriteNByteFromInt(packetNumberBitsIndex_, packet, PacketNumber, 4);
                     break;
             }
-
-            foreach (byte b in packet)
-            {
-                Console.Write($"{b} | ");
-            }
-            Console.WriteLine("\n-----");
 
             return packet;
         }
