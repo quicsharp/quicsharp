@@ -48,10 +48,12 @@ namespace quicsharp
             ReservedBits = BitUtils.ReadNBits(reservedBitsIndex_, data, 2);
 
             PacketNumberLength = BitUtils.ReadNBits(packetNumberLengthBitsIndex_, data, 2) + 1;
+            if (PacketNumberLength > 5 || PacketNumberLength == 0)
+                throw new Exception("Invalid Packet Number Length");
 
             Length.Decode(payloadStartBit_, data);
             packetNumberBitsIndex_ = payloadStartBit_ + Length.Size * 8;
-            PacketNumber = BitUtils.ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength * 8);
+            PacketNumber = (uint)BitUtils.ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength * 8);
 
             Payload = new byte[data.Length - packetNumberBitsIndex_ - PacketNumberLength];
             Array.Copy(data, packetNumberBitsIndex_ + PacketNumberLength * 8, Payload, 0, Payload.Length);

@@ -123,14 +123,14 @@ namespace quicsharp
             return ReadNBits(indexBegin, data, 8);
         }
 
-        public static uint ReadNBytes(int indexBegin, byte[] data, int n)
+        public static ulong ReadNBytes(int indexBegin, byte[] data, int n)
         {
-            return ReadNBits(indexBegin, data, n * 8);
+            return LongReadNBits(indexBegin, data, n * 8);
         }
 
-        public static uint ReadNBytes(int indexBegin, byte[] data, uint n)
+        public static ulong ReadNBytes(int indexBegin, byte[] data, uint n)
         {
-            return ReadNBytes(indexBegin, data, (int)n * 8);
+            return ReadNBytes(indexBegin, data, (int)n);
         }
 
         public static uint ReadUInt32(int indexBegin, byte[] data)
