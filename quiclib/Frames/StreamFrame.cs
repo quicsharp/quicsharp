@@ -8,9 +8,11 @@ namespace quicsharp.Frames
     {
         // Section 19.8
 
-        private byte minType => 0x08;
-        private byte maxType => 0x0f;
+        private byte _minType => 0x08;
+        private byte _maxType => 0x0f;
 
+        // +---------------------+
+        // | Frame type (8 bits) |
         // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         // |                    Stream ID (i)                           ... 
         // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -20,18 +22,36 @@ namespace quicsharp.Frames
         // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         // |                    Stream Data (*)                         ...
         // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-        public VariableLengthInteger streamID;
-        public VariableLengthInteger offset;
-        public VariableLengthInteger length;
-        public byte[] data;
+        public VariableLengthInteger _streamID = new VariableLengthInteger(0);
+        public VariableLengthInteger _offset = new VariableLengthInteger(0);
+        public VariableLengthInteger _length = new VariableLengthInteger(0);
+        public byte[] _data;
 
         // Frame type bits indicate the presence of the fields
-        public bool OFF; // bit 0x04
-        public bool LEN; // bit 0x02
-        public bool FIN; // bit 0x01
+        public bool _OFF; // bit 0x04
+        public bool _LEN; // bit 0x02
+        public bool _FIN; // bit 0x01
 
-        public byte writableType;
-        public override byte Type { get { return writableType; } }
+        public byte _writableType;
+        public override byte Type { get { return _writableType; } }
+
+        public StreamFrame() { }
+
+        public StreamFrame(UInt64 streamID, UInt64 offset, byte[] data, bool isLastFrameOfPacket, bool isEndOfStream)
+        {
+            _streamID = new VariableLengthInteger(streamID);
+
+            _OFF = offset != 0;
+            _offset = new VariableLengthInteger(offset);
+
+            _LEN = !isLastFrameOfPacket;
+            _length = new VariableLengthInteger(data.Length);
+
+            _FIN = isEndOfStream;
+            _writableType = Convert.ToByte(0b00001000 + (_OFF ? (1 << 2) : 0) + (_LEN ? (1 << 1) : 0) + (_FIN ? (1 << 0) : 0));
+
+            _data = data;
+        }
 
         public override int Decode(byte[] content, int begin)
         {
@@ -39,50 +59,51 @@ namespace quicsharp.Frames
                 throw new ArgumentException();
 
 
-            writableType = content[begin];
-            if (Type < minType || Type > maxType)
+            _writableType = content[begin];
+            if (Type < _minType || Type > _maxType)
                 throw new ArgumentException("Wrong frame type created");
 
-            OFF = (Type & (1 << 2)) != 0;
-            LEN = (Type & (1 << 1)) != 0;
-            FIN = (Type & (1 << 0)) != 0;
+            _OFF = (Type & (1 << 2)) != 0;
+            _LEN = (Type & (1 << 1)) != 0;
+            _FIN = (Type & (1 << 0)) != 0;
 
             int cursor = begin + 1;
 
-            streamID = new VariableLengthInteger(0);
-            cursor += streamID.Decode(cursor * 8, content) / 8;
+            cursor += _streamID.Decode(cursor * 8, content) / 8;
 
-            if (OFF)
+            if (_OFF)
             {
-                offset = new VariableLengthInteger(0);
-                cursor += offset.Decode(cursor * 8, content) / 8;
+                cursor += _offset.Decode(cursor * 8, content) / 8;
             }
 
-            if (LEN)
+            if (_LEN)
             {
-                length = new VariableLengthInteger(0);
-                cursor += length.Decode(cursor * 8, content) / 8;
+                cursor += _length.Decode(cursor * 8, content) / 8;
             }
             else
             {
-                // TODO: harmonize all int types to UInt64
-                length = new VariableLengthInteger(Convert.ToUInt64(content.Length) - Convert.ToUInt64(cursor));
+                _length = new VariableLengthInteger(Convert.ToUInt64(content.Length) - Convert.ToUInt64(cursor));
             }
 
-            // TODO(performance): immediately allocate the right amount of memory for 'data'
-            data = new byte[length.Value];
+            _data = new byte[_length.Value];
 
             // TODO: error handling if source packet is not long enough
-            Array.Copy(content, cursor, data, 0, Convert.ToInt32(length.Value));
-            return (cursor + Convert.ToInt32(length.Value) - begin) / 8;
+            Array.Copy(content, cursor, _data, 0, Convert.ToInt32(_length.Value));
+            return (cursor + Convert.ToInt32(_length.Value) - begin) / 8;
         }
 
         public override byte[] Encode()
         {
-            byte[] content = new byte[1];
-            content[0] = Type;
+            List<byte> content = new List<byte>();
+            content.Add(Type);
+            content.AddRange(_streamID.Encode());
+            if (_OFF)
+                content.AddRange(_offset.Encode());
+            if (_LEN)
+                content.AddRange(_length.Encode());
+            content.AddRange(_data);
 
-            return content;
+            return content.ToArray();
         }
     }
 }

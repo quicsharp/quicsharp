@@ -17,12 +17,28 @@ namespace quicsharp.tests
 
             Frames.StreamFrame sf = new Frames.StreamFrame();
             sf.Decode(b, 3);
-            Assert.AreEqual(sf.OFF, true);
-            Assert.AreEqual(sf.LEN, false);
-            Assert.AreEqual(sf.FIN, true);
-            Assert.AreEqual(sf.streamID.Value, Convert.ToUInt64(37));
-            Assert.AreEqual(sf.offset.Value, Convert.ToUInt64(494878333));
-            CollectionAssert.AreEqual(sf.data, new byte[] { 0x42 });
+            Assert.AreEqual(sf._OFF, true);
+            Assert.AreEqual(sf._LEN, false);
+            Assert.AreEqual(sf._FIN, true);
+            Assert.AreEqual(sf._streamID.Value, Convert.ToUInt64(37));
+            Assert.AreEqual(sf._offset.Value, Convert.ToUInt64(494878333));
+            CollectionAssert.AreEqual(sf._data, new byte[] { 0x42 });
+        }
+
+        [TestMethod]
+        public void TestEncode()
+        {
+            byte[] expected = new byte[] { 0b00001110, 0x7b, 0xbd, 0x9d, 0x7f, 0x3e, 0x7d, 0x02, 0x42, 0x43 };
+
+            UInt64 streamID = 15293;                    // 0x7b, 0xbd
+            UInt64 offset = 494878333;                  // 0x9d, 0x7f, 0x3e, 0x7d
+            byte[] data = new byte[] { 0x42, 0x43 };    // implicit length: 2
+            bool isLastFrameOfPacket = false;           // length should be provided
+            bool isEndOfStream = false;                 // FIN bit should be set to 0
+
+            Frames.StreamFrame sf = new Frames.StreamFrame(streamID, offset, data, isLastFrameOfPacket, isEndOfStream);
+            byte[] result = sf.Encode();
+            CollectionAssert.AreEqual(result, expected);
         }
     }
 }
