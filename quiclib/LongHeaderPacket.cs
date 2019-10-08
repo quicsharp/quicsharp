@@ -25,13 +25,13 @@ namespace quicsharp
          */
         protected new static int packetHeaderSize_ = 15;
 
-        public int PacketType;
-        public UInt32 Version;
-        public int DCIDLength;
-        public UInt32 DCID;
-        public int SCIDLength;
-        public UInt32 SCID;
-        public byte[] Payload;
+        public uint PacketType;
+        public uint Version;
+        public uint DCIDLength;
+        public uint DCID;
+        public uint SCIDLength;
+        public uint SCID;
+        new public byte[] Payload;
 
         protected static int packetTypeBit_ = 2;
         protected static int versionBit_ = 8;
@@ -46,20 +46,20 @@ namespace quicsharp
             if (data.Length < packetHeaderSize_)
                 throw new AccessViolationException("QUIC packet too small for a LongHeaderPacket");
 
-            PacketType = ReadNBits(packetTypeBit_, data, 2);
+            PacketType = (uint)BitUtils.ReadNBits(packetTypeBit_, data, 2);
             // Next 4 bits are apcket specific and will be tended to in their own class.
-            Version = ReadUInt32(versionBit_, data);
+            Version = BitUtils.ReadUInt32(versionBit_, data);
 
-            DCIDLength = ReadByte(DCIDLengthBit_, data);
+            DCIDLength = BitUtils.ReadByte(DCIDLengthBit_, data);
             if (DCIDLength != 4)
                 throw new ArgumentException("In our implementation, we limit ourselves to 32 bits Destination connection IDs");
-            DCID = ReadUInt32(destinationConnectionIdBit_, data);
+            DCID = BitUtils.ReadUInt32(destinationConnectionIdBit_, data);
 
-            SCIDLength = ReadByte(SCIDLengthBit_, data);
+            SCIDLength = BitUtils.ReadByte(SCIDLengthBit_, data);
             if (SCIDLength != 4)
                 throw new ArgumentException("In our implementation, we limit ourselves to 32 bits Destination connection IDs");
             else if(SCIDLength > 20)
-            SCID = ReadUInt32(sourceConnectionIdBit_, data);
+            SCID = BitUtils.ReadUInt32(sourceConnectionIdBit_, data);
 
             Payload = new byte[data.Length - (payloadStartBit_ / 8)];
             Array.Copy(data, payloadStartBit_ / 8, Payload, 0, Payload.Length);
@@ -68,17 +68,17 @@ namespace quicsharp
         public override byte[] Encode()
         {
             byte[] packet = new byte[packetHeaderSize_];
-            WriteBit(0, packet, true);
-            WriteBit(1, packet, true);
+            BitUtils.WriteBit(0, packet, true);
+            BitUtils.WriteBit(1, packet, true);
 
-            WriteUInt32(versionBit_, packet, Version);
+            BitUtils.WriteUInt32(versionBit_, packet, Version);
 
-            WriteNByteFromInt(DCIDLengthBit_, packet, (uint)DCIDLength, 1);
-            WriteUInt32(destinationConnectionIdBit_, packet, DCID);
+            BitUtils.WriteNByteFromInt(DCIDLengthBit_, packet, (uint)DCIDLength, 1);
+            BitUtils.WriteUInt32(destinationConnectionIdBit_, packet, DCID);
 
 
-            WriteNByteFromInt(SCIDLengthBit_, packet, (uint)SCIDLength, 1);
-            WriteUInt32(sourceConnectionIdBit_, packet, SCID);
+            BitUtils.WriteNByteFromInt(SCIDLengthBit_, packet, (uint)SCIDLength, 1);
+            BitUtils.WriteUInt32(sourceConnectionIdBit_, packet, SCID);
 
             // payload encoding is left to type-speficic classes
             return packet;
