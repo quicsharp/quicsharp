@@ -52,11 +52,11 @@ namespace quicsharp.tests
             Assert.AreEqual(p.GetType(), typeof(HandshakePacket));
             HandshakePacket recP = p as HandshakePacket;
 
-            Assert.AreEqual(4, recP.DCIDLength);
+            Assert.AreEqual((UInt32)4, recP.DCIDLength);
             Assert.AreEqual((UInt32)6789, recP.DCID);
-            Assert.AreEqual(4, recP.SCIDLength);
+            Assert.AreEqual((UInt32)4, recP.SCIDLength);
             Assert.AreEqual((UInt32)2356, recP.SCID);
-            Assert.AreEqual(3, recP.PacketNumberLength);
+            Assert.AreEqual((UInt32)3, recP.PacketNumberLength);
             Assert.AreEqual((UInt32)91235, recP.PacketNumber);
             Assert.AreEqual((UInt64)20, recP.Length.Value);
         }
@@ -82,11 +82,11 @@ namespace quicsharp.tests
             Assert.AreEqual(p.GetType(), typeof(RetryPacket));
             RetryPacket recP = p as RetryPacket;
 
-            Assert.AreEqual(4, recP.DCIDLength);
+            Assert.AreEqual((UInt32)4, recP.DCIDLength);
             Assert.AreEqual((UInt32)6789, recP.DCID);
-            Assert.AreEqual(4, recP.SCIDLength);
+            Assert.AreEqual((UInt32)4, recP.SCIDLength);
             Assert.AreEqual((UInt32)3104, recP.SCID);
-            Assert.AreEqual(4, recP.ODCIDLength);
+            Assert.AreEqual((UInt32)4, recP.ODCIDLength);
             Assert.AreEqual((UInt32)12345, recP.ODCID);
             CollectionAssert.AreEqual(new byte[] { 0x12, 0x45, 0x76, 0xf2 }, recP.RetryToken);
         }
@@ -109,9 +109,9 @@ namespace quicsharp.tests
             Assert.AreEqual(p.GetType(), typeof(RTTPacket));
             RTTPacket recP = p as RTTPacket;
 
-            Assert.AreEqual(4, recP.DCIDLength);
+            Assert.AreEqual((UInt32)4, recP.DCIDLength);
             Assert.AreEqual((UInt32)1240, recP.DCID);
-            Assert.AreEqual(4, recP.SCIDLength);
+            Assert.AreEqual((UInt32)4, recP.SCIDLength);
             Assert.AreEqual((UInt32)55621, recP.SCID);
         }
     }
