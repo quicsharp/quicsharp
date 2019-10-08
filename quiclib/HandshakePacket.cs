@@ -9,7 +9,7 @@ namespace quicsharp
         public int ReservedBits = 0;
         public int PacketNumberLength;
         public UInt32 PacketNumber;
-        public VariableLengthInteger Length;
+        public VariableLengthInteger Length = new VariableLengthInteger(0);
         public byte[] Payload;
 
         private static int reservedBitsIndex_ = 4;
@@ -50,22 +50,33 @@ namespace quicsharp
             PacketNumberLength = ReadNBits(packetNumberLengthBitsIndex_, data, 2) + 1;
 
             Length.Decode(payloadStartBit_, data);
-            packetNumberBitsIndex_ = payloadStartBit_ + Length.Size * 8;
-            PacketNumber = (uint)ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength * 8);
+            if ((UInt64)data.Length != Length.Value)
+                throw new CorruptedPacketException($"Initial Packet does not have the correct size. Expected: {Length.Value} | Actual: {data.Length}");
+            packetNumberBitsIndex_ = payloadStartBit_ + Length.Size;
+            PacketNumber = (uint)ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength);
 
-            Payload = new byte[data.Length - packetNumberBitsIndex_ - PacketNumberLength];
-            Array.Copy(data, packetNumberBitsIndex_ + PacketNumberLength * 8, Payload, 0, Payload.Length);
+            Payload = new byte[data.Length - (packetNumberBitsIndex_ / 8) - PacketNumberLength];
+            Array.Copy(data, packetNumberBitsIndex_ / 8 + PacketNumberLength, Payload, 0, Payload.Length);
         }
 
         public override byte[] Encode()
         {
-            byte[] packet = base.Encode();
+            List<byte> lpack = new List<byte>();
+            Payload = EncodeFrames();
+            lpack.AddRange(base.Encode());
+
+            Length.Value = (ulong)lpack.Count + (ulong)Payload.Length + (ulong)PacketNumberLength;
+            Length.Value = Length.Value + (ulong)(Length.Size / 8);
+            lpack.AddRange(Length.Encode());
+
+            packetNumberBitsIndex_ = lpack.Count * 8;
+            lpack.AddRange(new byte[PacketNumberLength]);
+            lpack.AddRange(Payload);
+            byte[] packet = lpack.ToArray();
+
             WriteBit(2, packet, true);
             WriteBit(3, packet, false);
-
-            Array.Copy(Length.Encode(), 0, packet, payloadStartBit_, Length.Size * 8);
-
-            switch (PacketNumberLength)
+            switch (PacketNumberLength - 1)
             {
                 case 0:
                     WriteBit(6, packet, false);
@@ -89,7 +100,6 @@ namespace quicsharp
                     break;
             }
 
-            Array.Copy(Payload, 0, packet, packetNumberBitsIndex_ + PacketNumberLength * 8, Payload.Length);
             return packet;
         }
     }

@@ -62,6 +62,9 @@ namespace quicsharp
             Token = ReadUInt32(tokenBitsIndex_, data);
 
             Length.Decode(tokenBitsIndex_ + 32, data);
+            if ((UInt64)data.Length != Length.Value)
+                throw new CorruptedPacketException($"Initial Packet does not have the correct size. Expected: {Length.Value} | Actual: {data.Length}");
+
             packetNumberBitsIndex_ = tokenBitsIndex_ + 32 + Length.Size;
             PacketNumber = (uint)ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength);
 
@@ -79,10 +82,12 @@ namespace quicsharp
 
             tokenBitsIndex_ = lpack.Count * 8;
             lpack.AddRange(new byte[4]); // Token UInt32
+            Length.Value = (ulong)lpack.Count + (ulong)Payload.Length + (ulong)PacketNumberLength;
+            Length.Value = Length.Value + (ulong)(Length.Size / 8);
             lpack.AddRange(Length.Encode());
             packetNumberBitsIndex_ = lpack.Count * 8;
 
-            lpack.AddRange(new byte[PacketNumberLength + 1]);
+            lpack.AddRange(new byte[PacketNumberLength]);
             lpack.AddRange(Payload);
             byte[] packet = lpack.ToArray();
             WriteBit(2, packet, false);
