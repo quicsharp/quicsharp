@@ -58,7 +58,6 @@ namespace quicsharp
             SCIDLength = ReadByte(SCIDLengthBit_, data);
             if (SCIDLength != 4)
                 throw new CorruptedPacketException("In our implementation, we limit ourselves to 32 bits Destination connection IDs");
-            else if(SCIDLength > 20)
             SCID = ReadUInt32(sourceConnectionIdBit_, data);
         }
 
