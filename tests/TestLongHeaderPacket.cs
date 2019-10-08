@@ -29,7 +29,7 @@ namespace quicsharp.tests
             Assert.AreEqual((UInt32)1234, recP.PacketNumber);
             Assert.AreEqual((UInt64)3, recP.TokenLength.Value);
             Assert.AreEqual((UInt32)4242, recP.Token);
-            Assert.AreEqual((UInt64)23, recP.Length.Value);
+            Assert.AreEqual((UInt64)24, recP.Length.Value);
         }
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace quicsharp.tests
             Assert.AreEqual((UInt32)2356, recP.SCID);
             Assert.AreEqual(3, recP.PacketNumberLength);
             Assert.AreEqual((UInt32)91235, recP.PacketNumber);
-            Assert.AreEqual((UInt64)19, recP.Length.Value);
+            Assert.AreEqual((UInt64)20, recP.Length.Value);
         }
 
         [TestMethod]
@@ -89,6 +89,30 @@ namespace quicsharp.tests
             Assert.AreEqual(4, recP.ODCIDLength);
             Assert.AreEqual((UInt32)12345, recP.ODCID);
             CollectionAssert.AreEqual(new byte[] { 0x12, 0x45, 0x76, 0xf2 }, recP.RetryToken);
+        }
+
+        [TestMethod]
+        public void TestRTTPacket()
+        {
+            RTTPacket sentP = new RTTPacket
+            {
+                DCIDLength = 4,
+                DCID = 1240,
+                SCIDLength = 4,
+                SCID = 55621,
+            };
+
+            byte[] b = sentP.Encode();
+
+            Packet p = Packet.Unpack(b);
+
+            Assert.AreEqual(p.GetType(), typeof(RTTPacket));
+            RTTPacket recP = p as RTTPacket;
+
+            Assert.AreEqual(4, recP.DCIDLength);
+            Assert.AreEqual((UInt32)1240, recP.DCID);
+            Assert.AreEqual(4, recP.SCIDLength);
+            Assert.AreEqual((UInt32)55621, recP.SCID);
         }
     }
 }

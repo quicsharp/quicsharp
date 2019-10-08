@@ -82,12 +82,12 @@ namespace quicsharp
 
             tokenBitsIndex_ = lpack.Count * 8;
             lpack.AddRange(new byte[4]); // Token UInt32
-            Length.Value = (ulong)lpack.Count + (ulong)Payload.Length + (ulong)PacketNumberLength;
+            Length.Value = (ulong)lpack.Count + (ulong)Payload.Length + (ulong)PacketNumberLength + 1;
             Length.Value = Length.Value + (ulong)(Length.Size / 8);
             lpack.AddRange(Length.Encode());
             packetNumberBitsIndex_ = lpack.Count * 8;
 
-            lpack.AddRange(new byte[PacketNumberLength]);
+            lpack.AddRange(new byte[PacketNumberLength + 1]); // Length + PacketNumber
             lpack.AddRange(Payload);
             byte[] packet = lpack.ToArray();
             WriteBit(2, packet, false);
