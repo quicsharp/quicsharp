@@ -21,11 +21,11 @@ namespace quicsharp.tests
             Assert.AreEqual(p.GetType(), typeof(InitialPacket));
             InitialPacket recP = p as InitialPacket;
 
-            Assert.AreEqual(4, recP.DCIDLength);
+            Assert.AreEqual((UInt32)4, recP.DCIDLength);
             Assert.AreEqual((UInt32)4321, recP.DCID);
-            Assert.AreEqual(4, recP.SCIDLength);
+            Assert.AreEqual((UInt32)4, recP.SCIDLength);
             Assert.AreEqual((UInt32)1045, recP.SCID);
-            Assert.AreEqual(2, recP.PacketNumberLength);
+            Assert.AreEqual((UInt32)2, recP.PacketNumberLength);
             Assert.AreEqual((UInt32)1234, recP.PacketNumber);
             Assert.AreEqual((UInt64)3, recP.TokenLength.Value);
             Assert.AreEqual((UInt32)4242, recP.Token);

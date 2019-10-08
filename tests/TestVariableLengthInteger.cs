@@ -52,6 +52,19 @@ namespace quicsharp.tests
             Assert.AreEqual(0, b[5]);
             Assert.AreEqual(0, b[6]);
             Assert.AreEqual(0, b[7]);
+
+            n.Value = (UInt64)151288809941952652;
+            Assert.AreEqual(64, n.Size);
+            b = n.Encode();
+            Assert.AreEqual(8, b.Length);
+            Assert.AreEqual(0xc2, b[0]);
+            Assert.AreEqual(0x19, b[1]);
+            Assert.AreEqual(0x7c, b[2]);
+            Assert.AreEqual(0x5e, b[3]);
+            Assert.AreEqual(0xff, b[4]);
+            Assert.AreEqual(0x14, b[5]);
+            Assert.AreEqual(0xe8, b[6]);
+            Assert.AreEqual(0x8c, b[7]);
         }
 
         [TestMethod]
@@ -69,30 +82,30 @@ namespace quicsharp.tests
             Assert.AreEqual(32, n.Size);
             Assert.AreEqual((UInt64)65536, n.Value);
 
-            b = new byte[] { 0xc2, 0x19, 0x7c, 0x5e, 0xff, 0x14, 0xe8, 0x8c };
-            Assert.AreEqual(64, n.Decode(0, b));
-            Assert.AreEqual(8, n.Size);
-            Assert.AreEqual((UInt64)151288809941952652, n.Value);
-
             b = new byte[] { 0x9d, 0x7f, 0x3e, 0x7d };
             Assert.AreEqual(32, n.Decode(0, b));
-            Assert.AreEqual(4, n.Size);
+            Assert.AreEqual(32, n.Size);
             Assert.AreEqual((UInt64)494878333, n.Value);
 
             b = new byte[] { 0x7b, 0xbd };
             Assert.AreEqual(16, n.Decode(0, b));
-            Assert.AreEqual(2, n.Size);
+            Assert.AreEqual(16, n.Size);
             Assert.AreEqual((UInt64)15293, n.Value);
 
             b = new byte[] { 0x25 };
             Assert.AreEqual(8, n.Decode(0, b));
-            Assert.AreEqual(1, n.Size);
+            Assert.AreEqual(8, n.Size);
             Assert.AreEqual((UInt64)37, n.Value);
 
             b = new byte[] { 0x40, 0x25 };
             Assert.AreEqual(16, n.Decode(0, b));
-            Assert.AreEqual(2, n.Size);
+            Assert.AreEqual(16, n.Size);
             Assert.AreEqual((UInt64)37, n.Value);
+
+            b = new byte[] { 0xc2, 0x19, 0x7c, 0x5e, 0xff, 0x14, 0xe8, 0x8c };
+            Assert.AreEqual(64, n.Decode(0, b));
+            Assert.AreEqual(64, n.Size);
+            Assert.AreEqual((UInt64)151288809941952652, n.Value);
         }
     }
 }
