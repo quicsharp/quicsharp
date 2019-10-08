@@ -44,7 +44,7 @@ namespace quicsharp
         public override void Decode(byte[] data)
         {
             if (data.Length < packetHeaderSize_)
-                throw new AccessViolationException("QUIC packet too small for a ShortHeaderPacket");
+                throw new AccessViolationException("QUIC packet too small for a LongHeaderPacket");
 
             PacketType = ReadNBits(packetTypeBit_, data, 2);
             // Next 4 bits are apcket specific and will be tended to in their own class.
@@ -57,17 +57,17 @@ namespace quicsharp
 
             SCIDLength = ReadByte(SCIDLengthBit_, data);
             if (SCIDLength != 4)
-                throw new ArgumentException(" In our implementation, we limit ourselves to 32 bits Destination connection IDs");
+                throw new ArgumentException("In our implementation, we limit ourselves to 32 bits Destination connection IDs");
             else if(SCIDLength > 20)
             SCID = ReadUInt32(sourceConnectionIdBit_, data);
 
-            Payload = new byte[data.Length - payloadStartBit_];
-            Array.Copy(data, payloadStartBit_, Payload, 0, Payload.Length);
+            Payload = new byte[data.Length - (payloadStartBit_ / 8)];
+            Array.Copy(data, payloadStartBit_ / 8, Payload, 0, Payload.Length);
         }
 
         public override byte[] Encode()
         {
-            byte[] packet = new byte[packetHeaderSize_ + Payload.Length];
+            byte[] packet = new byte[packetHeaderSize_];
             WriteBit(0, packet, true);
             WriteBit(1, packet, true);
 
