@@ -7,7 +7,7 @@ namespace quicsharp
     class PacketManager
     {
         // Section 12.3
-        private UInt64 packetNumber_ = 0;
+        private UInt32 packetNumber_ = 0;
         private UInt32 connectionID_ = 0;
         private UInt32 peerConnectionID_ = 0;
 

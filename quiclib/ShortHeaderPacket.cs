@@ -13,7 +13,8 @@ namespace quicsharp
         public int PacketNumberLengthByte = 4;
 
         public uint DestinationConnectionID = 0;
-        public ulong PacketNumber = 0;
+        public uint PacketNumberLength;
+        public uint PacketNumber = 0;
 
 
         private int spinBit_ = 2;
@@ -44,12 +45,12 @@ namespace quicsharp
             Spin = BitUtils.ReadBit(spinBit_, data);
             KeyPhase = BitUtils.ReadBit(keyPhaseBit_, data);
             // Reserved bits (R) are unused
-            DecodePacketNumberLengthByte(data);
+            PacketNumberLength = BitUtils.ReadNBits(packetLengthBit_, data, 2) + 1;
 
             DestinationConnectionID = BitUtils.ReadUInt32(destinationConnectionIDBit_, data);
-            PacketNumber = BitUtils.LongReadNBits(packetNumberBit_, data, PacketNumberLengthByte * 8);
+            PacketNumber = (uint)BitUtils.ReadNBytes(packetNumberBit_, data, PacketNumberLength);
 
-            Payload = new byte[data.Length - packetHeaderSize_];
+            Payload = new byte[data.Length - packetHeaderSize_ - PacketNumberLength];
             Array.Copy(data, packetHeaderSize_, Payload, 0, Payload.Length);
         }
 
@@ -74,18 +75,34 @@ namespace quicsharp
             // TODO: Write N bits
             BitUtils.WriteUInt32(packetNumberBit_, packet, Convert.ToUInt32(PacketNumber));
 
+            switch (PacketNumberLength - 1)
+            {
+                case 0:
+                    BitUtils.WriteBit(6, packet, false);
+                    BitUtils.WriteBit(7, packet, false);
+                    BitUtils.WriteNByteFromInt(packetNumberBit_, packet, PacketNumber, 1);
+                    break;
+                case 1:
+                    BitUtils.WriteBit(6, packet, false);
+                    BitUtils.WriteBit(7, packet, true);
+                    BitUtils.WriteNByteFromInt(packetNumberBit_, packet, PacketNumber, 2);
+                    break;
+                case 2:
+                    BitUtils.WriteBit(6, packet, true);
+                    BitUtils.WriteBit(7, packet, false);
+                    BitUtils.WriteNByteFromInt(packetNumberBit_, packet, PacketNumber, 3);
+                    break;
+                case 3:
+                    BitUtils.WriteBit(6, packet, true);
+                    BitUtils.WriteBit(7, packet, true);
+                    BitUtils.WriteNByteFromInt(packetNumberBit_, packet, PacketNumber, 4);
+                    break;
+            }
+
             Payload.CopyTo(packet, packetHeaderSize_);
                
 
             return packet;
-        }
-
-        private void DecodePacketNumberLengthByte(byte[] data)
-        {
-            PacketNumberLengthByte = (BitUtils.ReadBit(packetLengthBit_ + 1, data)) ? 1 : 0;
-            PacketNumberLengthByte += (BitUtils.ReadBit(packetLengthBit_, data)) ? 2 : 0;
-
-            PacketNumberLengthByte += 1;
         }
     }
 }
