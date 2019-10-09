@@ -8,19 +8,19 @@ namespace quicsharp
     {
         private static int maxConnection_ = 16777216;
 
-        private static UInt32 connectionId_ = 0;
+        private static UInt32 connectionId_ = 4096;
 
         private static Dictionary<UInt32, QuicConnection> _pool = new Dictionary<UInt32, QuicConnection>();
 
         private static List<QuicConnection> _draining = new List<QuicConnection>();
 
-        public static bool AddConnection(QuicConnection connection)
+        public static UInt32 AddConnection(QuicConnection connection)
         { 
             if (_pool.ContainsKey(connectionId_))
-                return false;
+                return 0;
 
             if (_pool.Count > maxConnection_)
-                return false;
+                return 0;
 
             // TODO : give correct ID ; Does not work when removing connection
             _pool.Add(connectionId_, connection);
@@ -28,7 +28,7 @@ namespace quicsharp
             Console.WriteLine("Connection added id: {0}", connectionId_);
             connectionId_++;
 
-            return true;
+            return connectionId_ - 1;
         }
 
         public static void RemoveConnection(UInt32 id)

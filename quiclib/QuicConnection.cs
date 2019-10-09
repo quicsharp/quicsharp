@@ -7,9 +7,13 @@ namespace quicsharp
 {
     public class QuicConnection
     {
-        private IPEndPoint endpoint_;
-        private UInt32 id_;
+        public IPEndPoint EndPoint;
 
         private PacketManager packetManager_;
+
+        public QuicConnection(IPEndPoint client)
+        {
+            EndPoint = client;
+        }
     }
 }

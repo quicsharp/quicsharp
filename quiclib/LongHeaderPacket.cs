@@ -31,7 +31,6 @@ namespace quicsharp
         public uint DCID;
         public uint SCIDLength;
         public uint SCID;
-        new public byte[] Payload;
 
         protected static int packetTypeBit_ = 2;
         protected static int versionBit_ = 8;

@@ -12,7 +12,6 @@ namespace quicsharp
         public VariableLengthInteger TokenLength = new VariableLengthInteger(0);
         public uint Token;
         public VariableLengthInteger Length = new VariableLengthInteger(0);
-        new public byte[] Payload;
 
         private static int reservedBitsIndex_ = 4;
         private static int packetNumberLengthBitsIndex_ = 6;
@@ -46,6 +45,18 @@ namespace quicsharp
            |                          Payload (*)                        ...
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
+         public InitialPacket()
+        {
+        }
+
+        public InitialPacket(uint dcid, uint scid, uint packetNumber)
+        {
+            PacketNumber = packetNumber;
+            DCID = dcid;
+            DCIDLength = 4;
+            SCID = scid;
+            SCIDLength = 4;
+        }
 
         public override void Decode(byte[] data)
         {

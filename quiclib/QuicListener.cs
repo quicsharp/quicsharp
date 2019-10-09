@@ -13,6 +13,8 @@ namespace quicsharp
         private bool started_;
 
         private ServerConnection serverConnection_;
+        private static UInt32 idCounter_ = 0;
+        private UInt32 id_;
 
         public int Port { get; private set; }
 
@@ -28,6 +30,8 @@ namespace quicsharp
             server_ = new UdpClient(Port);
             //serverConnection_ = new ServerConnection(server_, endpoint);
             started_ = true;
+            id_ = idCounter_;
+            idCounter_++;
         }
 
         // Close the listener
@@ -45,27 +49,34 @@ namespace quicsharp
             {
                 IPEndPoint client = null;
 
-                // Listening
-                Packet packet = Packet.Unpack(server_.Receive(ref client));
-                packet.DecodeFrames();
-                Console.WriteLine("Data received {0}:{1}.", client.Address, client.Port);
-
-                QuicConnection qc = ConnectionPool.Find(packet.ClientId);
-
-                if (qc == null)
+                try
                 {
-                    Console.WriteLine("New connection");
-                    ConnectionPool.AddConnection(qc);
-                }
+                    // Listening
+                    Packet packet = Packet.Unpack(server_.Receive(ref client));
 
-                // Printing message
-                foreach (Frame f in packet.Frames)
-                {
-                    if (f.Type == 0x1e)
+                    if (packet.GetType() == typeof(InitialPacket))
                     {
-                        DebugFrame fd = f as DebugFrame;
-                        Console.WriteLine("Debug message : {0}\n", fd.Message);
+                        InitialPacket initPack = packet as InitialPacket;
+                        Console.WriteLine("New initial packet");
+                        initPack.DecodeFrames();
+                        Console.WriteLine("Data received {0}:{1}.", client.Address, client.Port);
+
+                        QuicConnection qc = new QuicConnection(client);
+                        UInt32 dcid = ConnectionPool.AddConnection(qc);
+
+                        InitialPacket initialPacket = new InitialPacket(dcid, id_, 0);
+                        byte[] b = initialPacket.Encode();
+                        server_.Send(b, b.Length, client);
                     }
+                }
+                catch (CorruptedPacketException e)
+                {
+                    Console.WriteLine($"Received a corrupted QUIC packet {e.Message}");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Source);
+                    throw e;
                 }
             }
         }

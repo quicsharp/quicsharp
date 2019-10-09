@@ -21,13 +21,23 @@ namespace quicsharp
         // Connect to a remote server.
         public void Connect(string ip, int port)
         {
-            ShortHeaderPacket pack = new ShortHeaderPacket();
-            pack.PacketNumber = 1;
-            pack.AddFrame(new DebugFrame { Message = "Hello" });
+            InitialPacket initialPacket = new InitialPacket(0, 0, packetNumber_++);
 
-            byte[] bytePacket = pack.Encode();
+            byte[] byteInitialPacket = initialPacket.Encode();
+            client_.Send(byteInitialPacket, byteInitialPacket.Length, ip, port);
 
-            client_.Send(bytePacket, bytePacket.Length, ip, port);
+            IPEndPoint server = null;
+            Packet packet = Packet.Unpack(client_.Receive(ref server));
+
+            if (packet.GetType() == typeof(InitialPacket))
+            {
+                Console.WriteLine("New initial packet");
+                packet.DecodeFrames();
+                Console.WriteLine("Data received {0}:{1}.", server.Address, server.Port);
+
+                InitialPacket initPack = packet as InitialPacket;
+                Console.WriteLine($"I am client n {initPack.DCID} connected to server n {initPack.SCID}");
+            }
         }
 
         public int Send(byte[] payload)

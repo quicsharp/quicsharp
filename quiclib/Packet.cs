@@ -61,10 +61,10 @@ namespace quicsharp
 
         public virtual void DecodeFrames()
         {
-            if (Payload.Length == 0)
-                throw new ArgumentException("The payload is empty. Can't decode frames");
-
             FrameParser fp = new FrameParser(Payload);
+            if (Payload.Length == 0)
+                return;
+            //    throw new ArgumentException("The payload is empty. Can't decode frames");
 
             Frames = fp.GetFrames();
         }
