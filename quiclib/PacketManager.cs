@@ -11,6 +11,8 @@ namespace quicsharp
         private UInt32 connectionID_ = 0;
         private UInt32 peerConnectionID_ = 0;
 
+        public Queue<Packet> History = new Queue<Packet>();
+
         public PacketManager(UInt32 connectionID, UInt32 peerConnectionID)
         {
             connectionID_ = connectionID;
@@ -29,6 +31,11 @@ namespace quicsharp
             packetNumber_++;
 
             return packet;
+        }
+
+        public void Register(Packet p)
+        {
+            History.Enqueue(p);
         }
     }
 }

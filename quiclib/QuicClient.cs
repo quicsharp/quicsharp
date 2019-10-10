@@ -12,6 +12,8 @@ namespace quicsharp
         private UdpClient client_;
         private UInt32 packetNumber_;
 
+        private ServerConnection serverConnection_;
+
         public QuicClient()
         {
             client_ = new UdpClient();
@@ -37,6 +39,8 @@ namespace quicsharp
 
                 InitialPacket initPack = packet as InitialPacket;
                 Console.WriteLine($"I am client n {initPack.DCID} connected to server n {initPack.SCID}");
+                serverConnection_ = new ServerConnection(new UdpClient(), server);
+                
             }
         }
 
