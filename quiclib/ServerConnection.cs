@@ -29,14 +29,14 @@ namespace quicsharp
             return packet;
         }
 
-        public bool SendPacket(Packet packet)
+        public int SendPacket(Packet packet)
         {
             byte[] data = packet.Payload;
 
             int sent = server_.Send(data, data.Length, endpoint_);
 
             // If some bytes were sent
-            return sent > 0;
+            return sent;
         }
 
         public IPEndPoint LastTransferEndpoint()

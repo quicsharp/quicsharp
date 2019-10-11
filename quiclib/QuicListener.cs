@@ -54,19 +54,9 @@ namespace quicsharp
                     // Listening
                     Packet packet = Packet.Unpack(server_.Receive(ref client));
 
-                    if (packet.GetType() == typeof(InitialPacket))
+                    if (packet is InitialPacket)
                     {
-                        InitialPacket initPack = packet as InitialPacket;
-                        Console.WriteLine("New initial packet");
-                        initPack.DecodeFrames();
-                        Console.WriteLine("Data received {0}:{1}.", client.Address, client.Port);
-
-                        QuicConnection qc = new QuicConnection(client);
-                        UInt32 dcid = ConnectionPool.AddConnection(qc);
-
-                        InitialPacket initialPacket = new InitialPacket(dcid, id_, 0);
-                        byte[] b = initialPacket.Encode();
-                        server_.Send(b, b.Length, client);
+                        HandleInitialPacket(packet as InitialPacket, client);
                     }
                 }
                 catch (CorruptedPacketException e)
@@ -80,5 +70,20 @@ namespace quicsharp
                 }
             }
         }
+
+        private void HandleInitialPacket(InitialPacket packet, IPEndPoint client)
+        {
+            InitialPacket initPack = packet as InitialPacket;
+            Console.WriteLine("New initial packet");
+            initPack.DecodeFrames();
+            Console.WriteLine("Data received {0}:{1}.", client.Address, client.Port);
+
+            QuicConnection qc = new QuicConnection(client);
+            UInt32 dcid = ConnectionPool.AddConnection(qc);
+
+            InitialPacket initialPacket = new InitialPacket(dcid, id_, 0);
+            byte[] b = initialPacket.Encode();
+            server_.Send(b, b.Length, client);
+        } 
     }
 }

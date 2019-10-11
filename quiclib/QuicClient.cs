@@ -14,10 +14,13 @@ namespace quicsharp
 
         private ServerConnection serverConnection_;
 
+        public bool Connected;
+
         public QuicClient()
         {
             client_ = new UdpClient();
             packetNumber_ = 0;
+            Connected = false;
         }
 
         // Connect to a remote server.
@@ -40,20 +43,31 @@ namespace quicsharp
                 InitialPacket initPack = packet as InitialPacket;
                 Console.WriteLine($"I am client n {initPack.DCID} connected to server n {initPack.SCID}");
                 serverConnection_ = new ServerConnection(new UdpClient(), server);
-                
+                Connected = true;
             }
         }
 
         public int Send(byte[] payload)
         {
+            if (!Connected)
+                return -1;
             packetNumber_++;
+            
+            ShortHeaderPacket packet = new ShortHeaderPacket();
+            packet.AddFrame(new DebugFrame{ Message = payload.ToString() });
 
-            return 0;
+            return serverConnection_.SendPacket(packet);
+        }
+
+        private int Send(Packet packet)
+        {
+            return serverConnection_.SendPacket(packet);
         }
 
         public void Close()
         {
             client_.Close();
+            Connected = false;
         }
     }
 }
