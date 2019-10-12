@@ -11,6 +11,8 @@ namespace quicsharp
         public UInt32 ClientId;
         public List<Frame> Frames { get; protected set; } = new List<Frame>();
 
+        public UInt32 PacketNumber = 0;
+
         // Byte
         protected static int packetHeaderSize_ = 4;
 

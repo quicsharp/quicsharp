@@ -14,8 +14,6 @@ namespace quicsharp
 
         public uint DestinationConnectionID = 0;
         public uint PacketNumberLength;
-        public uint PacketNumber = 0;
-
 
         private int spinBit_ = 2;
         private int keyPhaseBit_ = 3;

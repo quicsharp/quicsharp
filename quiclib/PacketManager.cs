@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
+using quicsharp.Frames;
+
 namespace quicsharp
 {
     class PacketManager
@@ -11,7 +13,7 @@ namespace quicsharp
         private UInt32 connectionID_ = 0;
         private UInt32 peerConnectionID_ = 0;
 
-        public Queue<Packet> History = new Queue<Packet>();
+        public Dictionary<UInt32, Packet> History = new Dictionary<UInt32, Packet>();
 
         public PacketManager(UInt32 connectionID, UInt32 peerConnectionID)
         {
@@ -33,9 +35,32 @@ namespace quicsharp
             return packet;
         }
 
-        public void Register(Packet p)
+        public UInt32 ProcessAckFrame(AckFrame frame)
         {
-            History.Enqueue(p);
+            UInt32 ack = 0;
+            UInt32 endOfRange =  (UInt32)(frame.LargestAcknowledged.Value - frame.FirstAckRange.Value);
+
+            for (UInt32 i = (UInt32)frame.LargestAcknowledged.Value; i >= endOfRange; i--)
+            {
+                History.Remove(i);
+            }
+
+            for (UInt32 i = 0; i < frame.AckRangeCount.Value; i++)
+            {
+                endOfRange -= (UInt32)frame.AckRanges[i].Item1.Value;
+                for (UInt32 j = 0; j < frame.AckRanges[i].Item2.Value; j++)
+                {
+                    History.Remove(i);
+                    endOfRange--;
+                }
+            }
+
+            return ack;
+        }
+
+        public void Register(Packet p, UInt32 packetNumber)
+        {
+            History.Add(packetNumber, p);
         }
     }
 }

@@ -42,7 +42,7 @@ namespace quicsharp
 
                 InitialPacket initPack = packet as InitialPacket;
                 Console.WriteLine($"I am client n {initPack.DCID} connected to server n {initPack.SCID}");
-                serverConnection_ = new ServerConnection(new UdpClient(), server);
+                serverConnection_ = new ServerConnection(new UdpClient(), server, initPack.DCID, initPack.SCID);
                 Connected = true;
             }
         }

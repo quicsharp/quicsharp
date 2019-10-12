@@ -11,10 +11,13 @@ namespace quicsharp
         private UdpClient server_;
         private IPEndPoint endpoint_;
 
-        public ServerConnection(UdpClient server, IPEndPoint endpoint)
+        private PacketManager packetManager_;
+
+        public ServerConnection(UdpClient server, IPEndPoint endpoint, UInt32 clientId, UInt32 serverId)
         {
             server_ = server;
             endpoint_ = endpoint;
+            packetManager_ = new PacketManager(clientId, serverId);
         }
 
         public Packet ReadPacket()
@@ -34,6 +37,9 @@ namespace quicsharp
             byte[] data = packet.Payload;
 
             int sent = server_.Send(data, data.Length, endpoint_);
+            
+            if (packet.PacketNumber != 0)
+                packetManager_.Register(packet, packet.PacketNumber);
 
             // If some bytes were sent
             return sent;

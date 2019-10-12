@@ -8,7 +8,6 @@ namespace quicsharp
     {
         public uint ReservedBits = 0;
         public uint PacketNumberLength;
-        public uint PacketNumber;
         public VariableLengthInteger Length = new VariableLengthInteger(0);
         new public byte[] Payload;
 

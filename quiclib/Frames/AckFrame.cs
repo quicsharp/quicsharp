@@ -13,8 +13,7 @@ namespace quicsharp.Frames
         public VariableLengthInteger Delay = new VariableLengthInteger(0);
         public VariableLengthInteger AckRangeCount = new VariableLengthInteger(0);
         public VariableLengthInteger FirstAckRange = new VariableLengthInteger(0);
-
-        // Not doing AckRanges for now
+        public Tuple<VariableLengthInteger, VariableLengthInteger>[] AckRanges = new Tuple<VariableLengthInteger, VariableLengthInteger>[0];
 
         // ECN Counts 19.3.2
         public VariableLengthInteger ECT0 = new VariableLengthInteger(0);
@@ -22,6 +21,22 @@ namespace quicsharp.Frames
         public VariableLengthInteger ECN_CE = new VariableLengthInteger(0);
 
         private int frameLengthBitsMini => 8 + 7 * 8; 
+
+        /*
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                     Largest Acknowledged (i)                ...
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                          ACK Delay (i)                      ...
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                       ACK Range Count (i)                   ...
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                       First ACK Range (i)                   ...
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                          ACK Ranges (*)                     ...
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                          [ECN Counts]                       ...
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        */
 
         public override int Decode(byte[] content, int begin)
         {
@@ -38,7 +53,12 @@ namespace quicsharp.Frames
             read += AckRangeCount.Decode(beginBits + read, content);
             read += FirstAckRange.Decode(beginBits + read, content);
 
-            // No AckRanges for now
+            AckRanges = new Tuple<VariableLengthInteger, VariableLengthInteger>[AckRangeCount.Value];
+            foreach(Tuple<VariableLengthInteger, VariableLengthInteger> t in AckRanges)
+            {
+                read += t.Item1.Decode(beginBits + read, content);
+                read += t.Item2.Decode(beginBits + read, content);
+            }        
 
             read += ECT0.Decode(beginBits + read, content);
             read += ECT1.Decode(beginBits + read, content);
@@ -51,12 +71,18 @@ namespace quicsharp.Frames
         {
             List<byte> content = new List<byte>();
 
+            AckRangeCount.Value = (UInt64)AckRanges.Length;
+
             content.AddRange(LargestAcknowledged.Encode());
             content.AddRange(Delay.Encode());
             content.AddRange(AckRangeCount.Encode());
             content.AddRange(FirstAckRange.Encode());
 
-            // No AckRanges for now
+            foreach(Tuple<VariableLengthInteger, VariableLengthInteger> t in AckRanges)
+            {
+                content.AddRange(t.Item1.Encode());
+                content.AddRange(t.Item2.Encode());
+            }
 
             content.AddRange(ECT0.Encode());
             content.AddRange(ECT1.Encode());
