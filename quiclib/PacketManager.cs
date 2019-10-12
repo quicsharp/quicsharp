@@ -45,12 +45,12 @@ namespace quicsharp
                 History.Remove(i);
             }
 
-            for (UInt32 i = 0; i < frame.AckRangeCount.Value; i++)
+            foreach ((VariableLengthInteger, VariableLengthInteger) tuple in frame.AckRanges)
             {
-                endOfRange -= (UInt32)frame.AckRanges[i].Item1.Value;
-                for (UInt32 j = 0; j < frame.AckRanges[i].Item2.Value; j++)
+                endOfRange -= (UInt32)tuple.Item1.Value;
+                for (UInt32 j = 0; j < (UInt32)tuple.Item2.Value; j++)
                 {
-                    History.Remove(i);
+                    History.Remove(endOfRange);
                     endOfRange--;
                 }
             }

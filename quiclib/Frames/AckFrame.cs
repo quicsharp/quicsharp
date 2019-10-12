@@ -5,7 +5,7 @@ using System.Text;
 namespace quicsharp.Frames
 {
     // Section 19.3
-    class AckFrame : Frame
+    public class AckFrame : Frame
     {
         public override byte Type => 0x02;
 
@@ -13,7 +13,7 @@ namespace quicsharp.Frames
         public VariableLengthInteger Delay = new VariableLengthInteger(0);
         public VariableLengthInteger AckRangeCount = new VariableLengthInteger(0);
         public VariableLengthInteger FirstAckRange = new VariableLengthInteger(0);
-        public Tuple<VariableLengthInteger, VariableLengthInteger>[] AckRanges = new Tuple<VariableLengthInteger, VariableLengthInteger>[0];
+        public List<(VariableLengthInteger, VariableLengthInteger)> AckRanges = new List<(VariableLengthInteger, VariableLengthInteger)>();
 
         // ECN Counts 19.3.2
         public VariableLengthInteger ECT0 = new VariableLengthInteger(0);
@@ -40,24 +40,24 @@ namespace quicsharp.Frames
 
         public override int Decode(byte[] content, int begin)
         {
-            if (content.Length < frameLengthBitsMini + (begin / 8))
+            if (content.Length < (frameLengthBitsMini + begin) / 8)
                 throw new ArgumentException("ACK Frame has a wrong size");
             if (content[begin] != Type)
                 throw new ArgumentException("Wrong frame type created");
 
-            int beginBits = begin + 1;
-            int read = 0;
+            int beginBits = begin;
+            int read = 8;
 
-            read += LargestAcknowledged.Decode(beginBits+ read, content);
+            read += LargestAcknowledged.Decode(beginBits + read, content);
             read += Delay.Decode(beginBits + read, content);
             read += AckRangeCount.Decode(beginBits + read, content);
             read += FirstAckRange.Decode(beginBits + read, content);
 
-            AckRanges = new Tuple<VariableLengthInteger, VariableLengthInteger>[AckRangeCount.Value];
-            foreach(Tuple<VariableLengthInteger, VariableLengthInteger> t in AckRanges)
+            for (UInt32 i = 0; i < (UInt32)AckRangeCount.Value; i++)
             {
-                read += t.Item1.Decode(beginBits + read, content);
-                read += t.Item2.Decode(beginBits + read, content);
+                AckRanges.Add((new VariableLengthInteger(0), new VariableLengthInteger(0)));
+                read += AckRanges[AckRanges.Count - 1].Item1.Decode(beginBits + read, content);
+                read += AckRanges[AckRanges.Count - 1].Item2.Decode(beginBits + read, content);
             }        
 
             read += ECT0.Decode(beginBits + read, content);
@@ -71,14 +71,16 @@ namespace quicsharp.Frames
         {
             List<byte> content = new List<byte>();
 
-            AckRangeCount.Value = (UInt64)AckRanges.Length;
+            content.Add(Type);
+
+            AckRangeCount.Value = (UInt64)AckRanges.Count;
 
             content.AddRange(LargestAcknowledged.Encode());
             content.AddRange(Delay.Encode());
             content.AddRange(AckRangeCount.Encode());
             content.AddRange(FirstAckRange.Encode());
-
-            foreach(Tuple<VariableLengthInteger, VariableLengthInteger> t in AckRanges)
+            
+            foreach((VariableLengthInteger, VariableLengthInteger) t in AckRanges)
             {
                 content.AddRange(t.Item1.Encode());
                 content.AddRange(t.Item2.Encode());
