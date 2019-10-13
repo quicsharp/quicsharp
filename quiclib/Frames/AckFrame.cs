@@ -38,6 +38,48 @@ namespace quicsharp.Frames
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         */
 
+        public AckFrame(List<UInt32> receivedPackets, UInt64 delay)
+        {
+            if (receivedPackets.Count == 0)
+                throw new ArgumentException("No packet to ack");
+            receivedPackets.Sort();
+            receivedPackets.Reverse();
+            LargestAcknowledged.Value = receivedPackets[0];
+            FirstAckRange.Value = 0;
+            UInt32 ack = receivedPackets[0];
+            UInt32 range = 1;
+
+            Delay.Value = delay;
+
+            for (int i = 1; i < receivedPackets.Count; i++)
+            {
+                if (ack - range == receivedPackets[i])
+                    range++;
+                else
+                {
+                    if (FirstAckRange.Value == 0)
+                        FirstAckRange.Value = range;
+                    else
+                        AckRanges[AckRanges.Count - 1].Item1.Value = range;
+                    range = 1;
+                    AckRanges.Add((new VariableLengthInteger(0), new VariableLengthInteger(receivedPackets[i])));
+                    ack = receivedPackets[i];
+                }
+            }
+
+            if (FirstAckRange.Value == 0)
+                FirstAckRange.Value = range;
+            else
+                AckRanges[AckRanges.Count - 1].Item1.Value = range;
+
+            AckRangeCount.Value = (UInt64)AckRanges.Count;
+        }
+
+        public AckFrame()
+        {
+
+        }
+
         public override int Decode(byte[] content, int begin)
         {
             if (content.Length < (frameLengthBitsMini + begin) / 8)

@@ -14,6 +14,7 @@ namespace quicsharp
         private UInt32 peerConnectionID_ = 0;
 
         public Dictionary<UInt32, Packet> History = new Dictionary<UInt32, Packet>();
+        public List<UInt32> Received = new List<UInt32>();
 
         public PacketManager(UInt32 connectionID, UInt32 peerConnectionID)
         {

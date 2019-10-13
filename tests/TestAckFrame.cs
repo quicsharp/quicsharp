@@ -10,6 +10,21 @@ namespace quicsharp.tests
     public class TestAckFrame
     {
         [TestMethod]
+        public void TestConstructor()
+        {
+            List<UInt32> l = new List<UInt32>() { 1, 2, 4, 6, 5, 10, 11, 12, 13 };
+            AckFrame af = new AckFrame(l, 500);
+
+            Assert.AreEqual((UInt64)2, af.AckRangeCount.Value);
+            Assert.AreEqual((UInt64)13, af.LargestAcknowledged.Value);
+            Assert.AreEqual((UInt64)4, af.FirstAckRange.Value);
+            Assert.AreEqual((UInt64)500, af.Delay.Value);
+
+            Assert.AreEqual((UInt64)0, af.ECT0.Value);
+            Assert.AreEqual((UInt64)0, af.ECT1.Value);
+            Assert.AreEqual((UInt64)0, af.ECN_CE.Value);
+        }
+        [TestMethod]
         public void TestEncodeDecode()
         {
             AckFrame af = new AckFrame
