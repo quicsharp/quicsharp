@@ -6,7 +6,7 @@ using quicsharp.Frames;
 
 namespace quicsharp
 {
-    class PacketManager
+    public class PacketManager
     {
         // Section 12.3
         private UInt32 packetNumber_ = 0;
@@ -40,7 +40,7 @@ namespace quicsharp
             UInt32 ack = 0;
             UInt32 endOfRange =  (UInt32)(frame.LargestAcknowledged.Value - frame.FirstAckRange.Value);
 
-            for (UInt32 i = (UInt32)frame.LargestAcknowledged.Value; i >= endOfRange; i--)
+            for (UInt32 i = (UInt32)frame.LargestAcknowledged.Value; i > endOfRange; i--)
             {
                 History.Remove(i);
             }
