@@ -11,6 +11,8 @@ namespace quicsharp
         public UInt32 ClientId;
         public List<Frame> Frames { get; protected set; } = new List<Frame>();
 
+        public UInt32 PacketNumber = 0;
+
         // Byte
         protected static int packetHeaderSize_ = 4;
 
@@ -61,10 +63,10 @@ namespace quicsharp
 
         public virtual void DecodeFrames()
         {
-            if (Payload.Length == 0)
-                throw new ArgumentException("The payload is empty. Can't decode frames");
-
             FrameParser fp = new FrameParser(Payload);
+            if (Payload.Length == 0)
+                return;
+            //    throw new ArgumentException("The payload is empty. Can't decode frames");
 
             Frames = fp.GetFrames();
         }

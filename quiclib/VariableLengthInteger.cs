@@ -93,7 +93,6 @@ namespace quicsharp
                 default:
                     throw new Exception();
             }
-            Console.WriteLine(value_);
 
             return Size;
         }
