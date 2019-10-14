@@ -10,13 +10,13 @@ namespace quicsharp
     {
         // Section 12.3
         private UInt32 packetNumber_ = 0;
-        private UInt32 connectionID_ = 0;
-        private UInt32 peerConnectionID_ = 0;
+        private byte[] connectionID_ = new byte[] { };
+        private byte[] peerConnectionID_ = new byte[] { };
 
         public Dictionary<UInt32, Packet> History = new Dictionary<UInt32, Packet>();
         public List<UInt32> Received = new List<UInt32>();
 
-        public PacketManager(UInt32 connectionID, UInt32 peerConnectionID)
+        public PacketManager(byte[] connectionID, byte[] peerConnectionID)
         {
             connectionID_ = connectionID;
             peerConnectionID_ = peerConnectionID;
@@ -24,7 +24,8 @@ namespace quicsharp
 
         public ShortHeaderPacket CreateDataPacket(byte[] data)
         {
-            ShortHeaderPacket packet = new ShortHeaderPacket {
+            ShortHeaderPacket packet = new ShortHeaderPacket
+            {
                 DestinationConnectionID = peerConnectionID_,
                 PacketNumber = packetNumber_,
                 PacketNumberLengthByte = 3,
@@ -39,7 +40,7 @@ namespace quicsharp
         public UInt32 ProcessAckFrame(AckFrame frame)
         {
             UInt32 ack = 0;
-            UInt32 endOfRange =  (UInt32)(frame.LargestAcknowledged.Value - frame.FirstAckRange.Value);
+            UInt32 endOfRange = (UInt32)(frame.LargestAcknowledged.Value - frame.FirstAckRange.Value);
 
             for (UInt32 i = (UInt32)frame.LargestAcknowledged.Value; i > endOfRange; i--)
             {

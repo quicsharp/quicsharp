@@ -13,7 +13,7 @@ namespace quicsharp
 
         private PacketManager packetManager_;
 
-        public ServerConnection(UdpClient server, IPEndPoint endpoint, UInt32 clientId, UInt32 serverId)
+        public ServerConnection(UdpClient server, IPEndPoint endpoint, byte[] clientId, byte[] serverId)
         {
             server_ = server;
             endpoint_ = endpoint;
@@ -27,7 +27,7 @@ namespace quicsharp
             if (peerData == null)
                 throw new ApplicationException("QUIC Server did not respond.");
 
-            Packet packet = new Packet{ Payload = peerData };
+            Packet packet = new Packet { Payload = peerData };
 
             return packet;
         }
@@ -37,7 +37,7 @@ namespace quicsharp
             byte[] data = packet.Payload;
 
             int sent = server_.Send(data, data.Length, endpoint_);
-            
+
             if (packet.PacketNumber != 0)
                 packetManager_.Register(packet, packet.PacketNumber);
 

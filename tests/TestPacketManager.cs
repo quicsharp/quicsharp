@@ -25,7 +25,7 @@ namespace quicsharp.tests
                 ECN_CE = new VariableLengthInteger(84),
             };
 
-            PacketManager pm = new PacketManager(0, 0);
+            PacketManager pm = new PacketManager(new byte[] { 0x42 }, new byte[] { 0x43 });
 
             for (UInt32 i = 1; i < 70; i++)
             {

@@ -12,7 +12,7 @@ namespace quicsharp
         private bool started_;
 
         private static UInt32 idCounter_ = 0;
-        private UInt32 id_;
+        private byte[] id_;
 
         public int Port { get; private set; }
 
@@ -27,7 +27,7 @@ namespace quicsharp
         {
             server_ = new UdpClient(Port);
             started_ = true;
-            id_ = idCounter_;
+            id_ = BitConverter.GetBytes(idCounter_);
             idCounter_++;
         }
 
@@ -76,11 +76,11 @@ namespace quicsharp
             Console.WriteLine("Data received {0}:{1}.", client.Address, client.Port);
 
             QuicConnection qc = new QuicConnection(client);
-            UInt32 dcid = ConnectionPool.AddConnection(qc);
+            byte[] dcid = ConnectionPool.AddConnection(qc);
 
             InitialPacket initialPacket = new InitialPacket(dcid, id_, 0);
             byte[] b = initialPacket.Encode();
             server_.Send(b, b.Length, client);
-        } 
+        }
     }
 }

@@ -41,17 +41,17 @@ namespace quicsharp
            |                          Payload (*)                        ...
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
-         public InitialPacket()
+        public InitialPacket()
         {
         }
 
-        public InitialPacket(uint dcid, uint scid, uint packetNumber)
+        public InitialPacket(byte[] dcid, byte[] scid, uint packetNumber)
         {
             PacketNumber = packetNumber;
             DCID = dcid;
-            DCIDLength = 4;
+            DCIDLength = (uint)dcid.Length;
             SCID = scid;
-            SCIDLength = 4;
+            SCIDLength = (uint)scid.Length;
         }
 
         public override int Decode(byte[] data)

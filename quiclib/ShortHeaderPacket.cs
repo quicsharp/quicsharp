@@ -12,7 +12,7 @@ namespace quicsharp
         public bool KeyPhase = false;
         public int PacketNumberLengthByte = 4;
 
-        public uint DestinationConnectionID = 0;
+        public byte[] DestinationConnectionID = new byte[4];
         public uint PacketNumberLength;
 
         private int spinBit_ = 2;
@@ -45,7 +45,7 @@ namespace quicsharp
             // Reserved bits (R) are unused
             PacketNumberLength = BitUtils.ReadNBits(packetLengthBit_, data, 2) + 1;
 
-            DestinationConnectionID = BitUtils.ReadUInt32(destinationConnectionIDBit_, data);
+            Array.Copy(data, destinationConnectionIDBit_ / 8, DestinationConnectionID, 0, 4);
             PacketNumber = (uint)BitUtils.ReadNBytes(packetNumberBit_, data, PacketNumberLength);
 
             Payload = new byte[data.Length - packetHeaderSize_ - PacketNumberLength];
@@ -71,7 +71,7 @@ namespace quicsharp
             BitUtils.WriteBit(packetLengthBit_, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
             BitUtils.WriteBit(packetLengthBit_ + 1, packet, ((PacketNumberLengthByte - 1) % 2) == 1);
 
-            BitUtils.WriteUInt32(destinationConnectionIDBit_, packet, DestinationConnectionID);
+            Array.Copy(DestinationConnectionID, 0, packet, destinationConnectionIDBit_ / 8, 4);
 
             // TODO: Write N bits
             BitUtils.WriteUInt32(packetNumberBit_, packet, Convert.ToUInt32(PacketNumber));
