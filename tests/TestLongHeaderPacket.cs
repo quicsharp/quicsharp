@@ -10,38 +10,15 @@ namespace quicsharp.tests
     public class TestLongHeaderPacket
     {
         [TestMethod]
-        public void TestInitialPacket()
-        {
-            InitialPacket sentP = new InitialPacket { DCIDLength = 4, DCID = 4321, PacketNumberLength = 2, SCIDLength = 4, SCID = 1045, PacketNumber = 1234, TokenLength = new VariableLengthInteger(3), Token = 4242};
-
-            byte[] b = sentP.Encode();
-
-            Packet p = Packet.Unpack(b);
-
-            Assert.AreEqual(p.GetType(), typeof(InitialPacket));
-            InitialPacket recP = p as InitialPacket;
-
-            Assert.AreEqual((UInt32)4, recP.DCIDLength);
-            Assert.AreEqual((UInt32)4321, recP.DCID);
-            Assert.AreEqual((UInt32)4, recP.SCIDLength);
-            Assert.AreEqual((UInt32)1045, recP.SCID);
-            Assert.AreEqual((UInt32)2, recP.PacketNumberLength);
-            Assert.AreEqual((UInt32)1234, recP.PacketNumber);
-            Assert.AreEqual((UInt64)3, recP.TokenLength.Value);
-            Assert.AreEqual((UInt32)4242, recP.Token);
-            Assert.AreEqual((UInt64)24, recP.Length.Value);
-        }
-
-        [TestMethod]
         public void TestHandshakePacket()
         {
             HandshakePacket sentP = new HandshakePacket
             {
                 DCIDLength = 4,
-                DCID = 6789,
+                DCID = new byte[] { 0x00, 0x00, 0x1a, 0x85 },
                 PacketNumberLength = 3,
                 SCIDLength = 4,
-                SCID = 2356,
+                SCID = new byte[] { 0x00, 0x00, 0x09, 0x34 },
                 PacketNumber = 91235,
             };
 
@@ -53,9 +30,9 @@ namespace quicsharp.tests
             HandshakePacket recP = p as HandshakePacket;
 
             Assert.AreEqual((UInt32)4, recP.DCIDLength);
-            Assert.AreEqual((UInt32)6789, recP.DCID);
+            CollectionAssert.AreEqual(new byte[] { 0x00, 0x00, 0x1a, 0x85 }, recP.DCID);
             Assert.AreEqual((UInt32)4, recP.SCIDLength);
-            Assert.AreEqual((UInt32)2356, recP.SCID);
+            CollectionAssert.AreEqual(new byte[] { 0x00, 0x00, 0x09, 0x34 }, recP.SCID);
             Assert.AreEqual((UInt32)3, recP.PacketNumberLength);
             Assert.AreEqual((UInt32)91235, recP.PacketNumber);
             Assert.AreEqual((UInt64)20, recP.Length.Value);
@@ -67,9 +44,9 @@ namespace quicsharp.tests
             RetryPacket sentP = new RetryPacket
             {
                 DCIDLength = 4,
-                DCID = 6789,
+                DCID = new byte[] { 0x00, 0x00, 0x1a, 0x85 },
                 SCIDLength = 4,
-                SCID = 3104,
+                SCID = new byte[] { 0x00, 0x00, 0x0c, 0x20 },
                 ODCIDLength = 4,
                 ODCID = 12345,
                 RetryToken = new byte[] { 0x12, 0x45, 0x76, 0xf2 },
@@ -83,9 +60,9 @@ namespace quicsharp.tests
             RetryPacket recP = p as RetryPacket;
 
             Assert.AreEqual((UInt32)4, recP.DCIDLength);
-            Assert.AreEqual((UInt32)6789, recP.DCID);
+            CollectionAssert.AreEqual(new byte[] { 0x00, 0x00, 0x1a, 0x85 }, recP.DCID);
             Assert.AreEqual((UInt32)4, recP.SCIDLength);
-            Assert.AreEqual((UInt32)3104, recP.SCID);
+            CollectionAssert.AreEqual(new byte[] { 0x00, 0x00, 0x0c, 0x20 }, recP.SCID);
             Assert.AreEqual((UInt32)4, recP.ODCIDLength);
             Assert.AreEqual((UInt32)12345, recP.ODCID);
             CollectionAssert.AreEqual(new byte[] { 0x12, 0x45, 0x76, 0xf2 }, recP.RetryToken);
@@ -97,9 +74,9 @@ namespace quicsharp.tests
             RTTPacket sentP = new RTTPacket
             {
                 DCIDLength = 4,
-                DCID = 1240,
+                DCID = new byte[] { 0x00, 0x00, 0x04, 0xd8 },
                 SCIDLength = 4,
-                SCID = 55621,
+                SCID = new byte[] { 0x00, 0x00, 0xd9, 0x45 },
             };
 
             byte[] b = sentP.Encode();
@@ -110,9 +87,9 @@ namespace quicsharp.tests
             RTTPacket recP = p as RTTPacket;
 
             Assert.AreEqual((UInt32)4, recP.DCIDLength);
-            Assert.AreEqual((UInt32)1240, recP.DCID);
+            CollectionAssert.AreEqual(new byte[] { 0x00, 0x00, 0x04, 0xd8 }, recP.DCID);
             Assert.AreEqual((UInt32)4, recP.SCIDLength);
-            Assert.AreEqual((UInt32)55621, recP.SCID);
+            CollectionAssert.AreEqual(new byte[] { 0x00, 0x00, 0xd9, 0x45 }, recP.SCID);
         }
     }
 }
