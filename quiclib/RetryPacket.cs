@@ -39,7 +39,7 @@ namespace quicsharp
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
 
-        public override void Decode(byte[] data)
+        public override int Decode(byte[] data)
         {
             base.Decode(data);
             if (PacketType != 3)
@@ -53,6 +53,9 @@ namespace quicsharp
 
             RetryToken = new byte[data.Length - (tokenBitsIndex_ / 8)];
             Array.Copy(data, tokenBitsIndex_ / 8, RetryToken, 0, RetryToken.Length);
+
+            // TODO: fix this
+            return 0;
         }
 
         public override byte[] Encode()

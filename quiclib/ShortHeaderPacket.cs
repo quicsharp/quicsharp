@@ -12,7 +12,7 @@ namespace quicsharp
         public bool KeyPhase = false;
         public int PacketNumberLengthByte = 4;
 
-        public uint DestinationConnectionID = 0;
+        public byte[] DestinationConnectionID = new byte[4];
         public uint PacketNumberLength;
 
         private int spinBit_ = 2;
@@ -20,7 +20,7 @@ namespace quicsharp
         private int packetLengthBit_ = 6;
         private int destinationConnectionIDBit_ = 8;
         private int packetNumberBit_ = 40;
-        public override void Decode(byte[] data)
+        public override int Decode(byte[] data)
         {
             if (data.Length < packetHeaderSize_)
                 throw new AccessViolationException("QUIC packet too small for a ShortHeaderPacket");
@@ -45,11 +45,14 @@ namespace quicsharp
             // Reserved bits (R) are unused
             PacketNumberLength = BitUtils.ReadNBits(packetLengthBit_, data, 2) + 1;
 
-            DestinationConnectionID = BitUtils.ReadUInt32(destinationConnectionIDBit_, data);
+            Array.Copy(data, destinationConnectionIDBit_ / 8, DestinationConnectionID, 0, 4);
             PacketNumber = (uint)BitUtils.ReadNBytes(packetNumberBit_, data, PacketNumberLength);
 
             Payload = new byte[data.Length - packetHeaderSize_ - PacketNumberLength];
             Array.Copy(data, packetHeaderSize_, Payload, 0, Payload.Length);
+
+            // TODO: fix this
+            return 0;
         }
 
         public override byte[] Encode()
@@ -68,7 +71,7 @@ namespace quicsharp
             BitUtils.WriteBit(packetLengthBit_, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
             BitUtils.WriteBit(packetLengthBit_ + 1, packet, ((PacketNumberLengthByte - 1) % 2) == 1);
 
-            BitUtils.WriteUInt32(destinationConnectionIDBit_, packet, DestinationConnectionID);
+            Array.Copy(DestinationConnectionID, 0, packet, destinationConnectionIDBit_ / 8, 4);
 
             // TODO: Write N bits
             BitUtils.WriteUInt32(packetNumberBit_, packet, Convert.ToUInt32(PacketNumber));
@@ -98,7 +101,7 @@ namespace quicsharp
             }
 
             Payload.CopyTo(packet, packetHeaderSize_);
-               
+
 
             return packet;
         }

@@ -39,7 +39,10 @@ namespace quicsharp
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
 
-        public override void Decode(byte[] data)
+        // TODO: remove once refactoring for variable length SCID and DCID is complete
+        static int payloadStartBit_ = 120;
+
+        public override int Decode(byte[] data)
         {
             base.Decode(data);
             if (PacketType != 1)
@@ -58,7 +61,12 @@ namespace quicsharp
 
             Payload = new byte[data.Length - (packetNumberBitsIndex_ / 8) - PacketNumberLength];
             Array.Copy(data, packetNumberBitsIndex_ / 8 + PacketNumberLength, Payload, 0, Payload.Length);
+
+            // TODO: fix this
+            return 0;
         }
+
+
         public override byte[] Encode()
         {
             List<byte> lpack = new List<byte>(base.Encode());

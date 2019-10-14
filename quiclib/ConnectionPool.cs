@@ -14,13 +14,13 @@ namespace quicsharp
 
         private static List<QuicConnection> _draining = new List<QuicConnection>();
 
-        public static UInt32 AddConnection(QuicConnection connection)
-        { 
+        public static byte[] AddConnection(QuicConnection connection)
+        {
             if (_pool.ContainsKey(connectionId_))
-                return 0;
+                return new byte[] { };
 
             if (_pool.Count > maxConnection_)
-                return 0;
+                return new byte[] { };
 
             // TODO : give correct ID ; Does not work when removing connection
             _pool.Add(connectionId_, connection);
@@ -28,7 +28,7 @@ namespace quicsharp
             Console.WriteLine("Connection added id: {0}", connectionId_);
             connectionId_++;
 
-            return connectionId_ - 1;
+            return BitConverter.GetBytes(connectionId_ - 1);
         }
 
         public static void RemoveConnection(UInt32 id)
