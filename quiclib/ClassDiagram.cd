@@ -1,0 +1,333 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="quicsharp.BitUtils" Collapsed="true">
+    <Position X="24.25" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAEAAgAAABAAAAJAAAAAQIEAIAEAQAAAAAAA=</HashCode>
+      <FileName>BitUtils.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="quicsharp.ConnectionPool">
+    <Position X="18.75" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAIAAABAAAAAAAAAAAAAAAAQAIAAAAAAAAAAABgAA=</HashCode>
+      <FileName>ConnectionPool.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="_pool" />
+      <Field Name="_draining" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="quicsharp.CorruptedPacketException" Collapsed="true">
+    <Position X="19.5" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>CorruptedPacketException.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="quicsharp.Frame">
+    <Position X="5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgBAAAAAAAAAABAAAAAAAAAAAQAAQAAAAAA=</HashCode>
+      <FileName>Frame.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="quicsharp.FrameParser" Collapsed="true">
+    <Position X="21.25" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FrameParser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="quicsharp.HandshakePacket">
+    <Position X="7.75" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAAQABAAAAAAAAQAQBAAAAAABAAAAAAQBAAAAA=</HashCode>
+      <FileName>HandshakePacket.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="Length" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="quicsharp.InitialPacket">
+    <Position X="9.75" Y="10" Width="1.5" />
+    <AssociationLine Name="TokenLength" Type="quicsharp.VariableLengthInteger" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="10.5" Y="13.223" />
+        <Point X="10.5" Y="14.812" />
+        <Point X="8.615" Y="14.812" Type="JumpStart" />
+        <Point X="8.448" Y="14.812" Type="JumpEnd" />
+        <Point X="7.75" Y="14.812" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.11" Y="0.286" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAgAAQABAAAAAAAAAAQBAAAAAgBAAAIAAQBABAAA=</HashCode>
+      <FileName>InitialPacket.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="Length" />
+      <Field Name="TokenLength" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="quicsharp.LongHeaderPacket">
+    <Position X="11" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAhAAAAAABAAAECgAAAIAAAAEABEAEAAAAAQBAAgCA=</HashCode>
+      <FileName>LongHeaderPacket.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="quicsharp.Packet">
+    <Position X="12.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAACBAAAAAkAAQAAAAAAAAAAAAAAAAQBAAgAM=</HashCode>
+      <FileName>Packet.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Frames" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="quicsharp.PacketManager">
+    <Position X="26.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEEAAABAAAAAAAAAAAAAIACAAABAAAAAAACAAQAAAA=</HashCode>
+      <FileName>PacketManager.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="History" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="quicsharp.QuicClient">
+    <Position X="28.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQAAAAQAAAAEAAAIAAAAACAAAAAAAAAASAAAA=</HashCode>
+      <FileName>QuicClient.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="client_" />
+      <Field Name="serverConnection_" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="quicsharp.QuicConnection">
+    <Position X="23.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>QuicConnection.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="packetManager_" />
+      <Field Name="EndPoint" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="quicsharp.QuicListener">
+    <Position X="30.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQACAAAAAAAAAAAAAACAAAAAAQAAAIQQiAAgA=</HashCode>
+      <FileName>QuicListener.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="server_" />
+      <Field Name="serverConnection_" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="quicsharp.RetryPacket">
+    <Position X="12.25" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAEAAAAABAAAAAAAAAAAAAABAAAAAABoAAQAAAAAA=</HashCode>
+      <FileName>RetryPacket.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="quicsharp.RTTPacket">
+    <Position X="14.5" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAAQABAAAAAAAAQAQBAAAAAABAAAAAAQBAAAAA=</HashCode>
+      <FileName>RTTPacket.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="Length" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="quicsharp.ServerConnection">
+    <Position X="27.5" Y="10.75" Width="1.5" />
+    <AssociationLine Name="server_" Type="System.Net.Sockets.UdpClient" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="28.938" Y="10.812" />
+        <Point X="28.938" Y="8.781" />
+        <Point X="29.75" Y="8.781" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAEQAAAAAAAAQAACAAAAAAAAAAAAAAAAAAAAAQAAIAA=</HashCode>
+      <FileName>ServerConnection.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="server_" />
+      <Field Name="packetManager_" />
+      <Field Name="endpoint_" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="quicsharp.ShortHeaderPacket">
+    <Position X="14" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAggAAIBAAAAIAAAAAAAAAAAAQAAAAAAAQkIAkAg=</HashCode>
+      <FileName>ShortHeaderPacket.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="quicsharp.VariableLengthInteger">
+    <Position X="6.25" Y="14.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAABAgAAAAAAAAAAAAAAAACAAAAAgQAAAAAA=</HashCode>
+      <FileName>VariableLengthInteger.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="quicsharp.Frames.AckFrame">
+    <Position X="6.25" Y="3.5" Width="1.5" />
+    <AssociationLine Name="AckRangeCount" Type="quicsharp.VariableLengthInteger" FixedToPoint="true">
+      <Path>
+        <Point X="6.973" Y="6.213" />
+        <Point X="6.973" Y="6.337" />
+        <Point X="6.562" Y="6.337" />
+        <Point X="6.562" Y="14.25" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.097" Y="0.95" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="Delay" Type="quicsharp.VariableLengthInteger" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="7.392" Y="6.213" />
+        <Point X="7.392" Y="6.337" />
+        <Point X="6.562" Y="6.337" />
+        <Point X="6.562" Y="14.25" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.104" Y="0.739" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="ECN_CE" Type="quicsharp.VariableLengthInteger">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.066" Y="0.098" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="ECT0" Type="quicsharp.VariableLengthInteger" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="7.182" Y="6.213" />
+        <Point X="7.182" Y="6.337" />
+        <Point X="6.562" Y="6.337" />
+        <Point X="6.562" Y="14.25" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.091" Y="0.315" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="ECT1" Type="quicsharp.VariableLengthInteger" FixedToPoint="true">
+      <Path>
+        <Point X="6.766" Y="6.213" />
+        <Point X="6.766" Y="6.337" />
+        <Point X="6.562" Y="6.337" />
+        <Point X="6.562" Y="14.25" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.104" Y="0.515" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="FirstAckRange" Type="quicsharp.VariableLengthInteger" FixedToPoint="true">
+      <Path>
+        <Point X="6.562" Y="6.213" />
+        <Point X="6.562" Y="14.25" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.079" Y="1.119" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="LargestAcknowledged" Type="quicsharp.VariableLengthInteger" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="7.602" Y="6.213" />
+        <Point X="7.602" Y="6.337" />
+        <Point X="6.562" Y="6.337" />
+        <Point X="6.562" Y="14.25" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.054" Y="1.324" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAQAAAIBAAAABAAAGICAAAAAIAACAAQAAQAAAAAA=</HashCode>
+      <FileName>Frames\AckFrame.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="AckRangeCount" />
+      <Field Name="Delay" />
+      <Field Name="ECN_CE" />
+      <Field Name="ECT0" />
+      <Field Name="ECT1" />
+      <Field Name="FirstAckRange" />
+      <Field Name="LargestAcknowledged" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="quicsharp.Frames.DebugFrame">
+    <Position X="8.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAQAAYAAAAAA=</HashCode>
+      <FileName>Frames\DebugFrame.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="quicsharp.Frames.PaddingFrame">
+    <Position X="1.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAQAAQAAAAAA=</HashCode>
+      <FileName>Frames\PaddingFrame.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="quicsharp.Frames.StreamFrame">
+    <Position X="4" Y="3.5" Width="1.5" />
+    <AssociationLine Name="_length" Type="quicsharp.VariableLengthInteger" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="4.312" Y="7.175" />
+        <Point X="4.312" Y="16.375" />
+        <Point X="6.25" Y="16.375" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="_offset" Type="quicsharp.VariableLengthInteger" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="4.312" Y="7.175" />
+        <Point X="4.312" Y="16.375" />
+        <Point X="6.25" Y="16.375" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.01" Y="0.334" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="_streamID" Type="quicsharp.VariableLengthInteger" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="4.312" Y="7.175" />
+        <Point X="4.312" Y="16.391" />
+        <Point X="6.25" Y="16.391" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-0.008" Y="0.533" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>CgAAAAAABABAAAIAIAAAAAAAAIIAAAAABUAAQAAAAAA=</HashCode>
+      <FileName>Frames\StreamFrame.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_length" />
+      <Field Name="_offset" />
+      <Field Name="_streamID" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="System.Net.Sockets.UdpClient" Collapsed="true">
+    <Position X="29.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier />
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="System.Net.IPEndPoint" Collapsed="true">
+    <Position X="23.75" Y="10.75" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
