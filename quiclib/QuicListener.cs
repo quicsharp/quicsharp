@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 
 using quicsharp.Frames;
 
@@ -12,7 +11,6 @@ namespace quicsharp
         private UdpClient server_;
         private bool started_;
 
-        private ServerConnection serverConnection_;
         private static UInt32 idCounter_ = 0;
         private UInt32 id_;
 
@@ -28,7 +26,6 @@ namespace quicsharp
         public void Start()
         {
             server_ = new UdpClient(Port);
-            //serverConnection_ = new ServerConnection(server_, endpoint);
             started_ = true;
             id_ = idCounter_;
             idCounter_++;
