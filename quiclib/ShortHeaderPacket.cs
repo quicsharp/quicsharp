@@ -22,7 +22,7 @@ namespace quicsharp
         private int packetLengthBit_ = 6;
         private int destinationConnectionIDBit_ = 8;
         private int packetNumberBit_ = 40;
-        public override void Decode(byte[] data)
+        public override int Decode(byte[] data)
         {
             if (data.Length < packetHeaderSize_)
                 throw new AccessViolationException("QUIC packet too small for a ShortHeaderPacket");
@@ -52,6 +52,9 @@ namespace quicsharp
 
             Payload = new byte[data.Length - packetHeaderSize_ - PacketNumberLength];
             Array.Copy(data, packetHeaderSize_, Payload, 0, Payload.Length);
+
+            // TODO: fix this
+            return 0;
         }
 
         public override byte[] Encode()
@@ -100,7 +103,7 @@ namespace quicsharp
             }
 
             Payload.CopyTo(packet, packetHeaderSize_);
-               
+
 
             return packet;
         }
