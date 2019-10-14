@@ -123,6 +123,7 @@ namespace quicsharp
             return ReadNBits(indexBegin, data, 8);
         }
 
+        // TODO: n should be a ulong, not an int
         public static ulong ReadNBytes(int indexBegin, byte[] data, int n)
         {
             return LongReadNBits(indexBegin, data, n * 8);
