@@ -49,6 +49,7 @@ namespace quicsharp
 
         public static void WriteNByteFromInt(int indexBegin, byte[] data, uint toWrite, int n)
         {
+            // TODO: use BitConverter instead https://docs.microsoft.com/en-us/dotnet/api/system.bitconverter
             if (data.Length < (indexBegin / 8) + n)
                 throw new AccessViolationException($"QUIC packet too small (size: {data.Length * 8}, reading at: {indexBegin})");
 
