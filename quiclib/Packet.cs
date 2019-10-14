@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -85,10 +85,10 @@ namespace quicsharp
             return result.ToArray();
         }
 
-        public virtual void Decode(byte[] data)
+        // Decode should return number of bits read
+        public virtual int Decode(byte[] data)
         {
-            if(data.Length < packetHeaderSize_)
-                throw new AccessViolationException("QUIC packet too small");
+            throw new NotImplementedException();
         }
 
         public virtual byte[] Encode()

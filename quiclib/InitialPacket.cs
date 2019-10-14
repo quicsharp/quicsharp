@@ -10,7 +10,7 @@ namespace quicsharp
         public uint PacketNumberLength;
         public uint PacketNumber;
         public VariableLengthInteger TokenLength = new VariableLengthInteger(0);
-        public uint Token;
+        public ulong Token;
         public VariableLengthInteger Length = new VariableLengthInteger(0);
         new public byte[] Payload;
 
@@ -18,8 +18,6 @@ namespace quicsharp
         private static int packetNumberLengthBitsIndex_ = 6;
         private int tokenBitsIndex_;
         private int packetNumberBitsIndex_;
-
-
 
         /*
            +-+-+-+-+-+-+-+-+
@@ -47,9 +45,9 @@ namespace quicsharp
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
 
-        public override void Decode(byte[] data)
+        public override int Decode(byte[] data)
         {
-            base.Decode(data);
+            int cursor = base.Decode(data);
             if (PacketType != 0)
                 throw new ArgumentException("Wrong Packet type");
             ReservedBits = BitUtils.ReadNBits(reservedBitsIndex_, data, 2);
@@ -58,21 +56,23 @@ namespace quicsharp
             if (PacketNumberLength > 5 || PacketNumberLength == 0)
                 throw new Exception("Invalid Packet Number Length");
 
-            TokenLength.Decode(payloadStartBit_, data);
-            tokenBitsIndex_ = payloadStartBit_ + TokenLength.Size;
+            cursor += TokenLength.Decode(cursor, data);
 
-            Token = BitUtils.ReadUInt32(tokenBitsIndex_, data);
+            // TODO: fix ReadNBytes so that it can take a ulong, then remove the conversion here
+            Token = BitUtils.ReadNBytes(cursor, data, Convert.ToUInt32(TokenLength.Value));
+            cursor += 8 * Convert.ToInt32(TokenLength.Value);
 
-            Length.Decode(tokenBitsIndex_ + 32, data);
-            if ((UInt64)data.Length != Length.Value)
+            cursor += Length.Decode(cursor, data);
+            if ((UInt64)data.Length != Length.Value + (UInt64)cursor / 8)
                 throw new CorruptedPacketException($"Initial Packet does not have the correct size. Expected: {Length.Value} | Actual: {data.Length}");
 
-            packetNumberBitsIndex_ = tokenBitsIndex_ + 32 + Length.Size;
+            PacketNumber = (uint)BitUtils.ReadNBytes(cursor, data, PacketNumberLength);
+            cursor += (Int32)PacketNumberLength;
 
-            PacketNumber = (uint)BitUtils.ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength);
-
-            Payload = new byte[data.Length - (packetNumberBitsIndex_ / 8) - PacketNumberLength];
-            Array.Copy(data, packetNumberBitsIndex_ / 8 + PacketNumberLength, Payload, 0, Payload.Length);
+            Payload = new byte[data.Length - (cursor / 8) - PacketNumberLength];
+            Array.Copy(data, cursor / 8, Payload, 0, Payload.Length);
+            cursor += 8 * Payload.Length;
+            return cursor;
         }
 
         public override byte[] Encode()
@@ -96,7 +96,7 @@ namespace quicsharp
             BitUtils.WriteBit(2, packet, false);
             BitUtils.WriteBit(3, packet, false);
 
-            BitUtils.WriteUInt32(tokenBitsIndex_, packet, Token);
+            BitUtils.WriteUInt32(tokenBitsIndex_, packet, (UInt32)Token);
 
             switch (PacketNumberLength - 1)
             {
