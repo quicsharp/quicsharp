@@ -10,28 +10,31 @@ namespace quicsharp.tests
     {
         // TODO: add test for 1200 bytes length when encoding shorter data
 
-        // [TestMethod]
-        // public void TestInitialPacketEncodeAndDecode()
-        // {
-        //     InitialPacket sentP = new InitialPacket { DCIDLength = 4, DCID = 4321, PacketNumberLength = 2, SCIDLength = 4, SCID = 1045, PacketNumber = 1234, TokenLength = new VariableLengthInteger(3), Token = 4242 };
+        [TestMethod]
+        public void TestInitialPacketEncodeAndDecode()
+        {
+            // TODO: all the lengths fields should be set automatically (ex: DCIDLength should be auto computed from DCID)
+            InitialPacket sentP = new InitialPacket { DCIDLength = 2, DCID = new byte[] { 0xab, 0xcd }, PacketNumberLength = 2, SCIDLength = 3, SCID = new byte[] { 0x12, 0x23, 0xcf }, PacketNumber = 1234, TokenLength = new VariableLengthInteger(2), Token = new byte[] { 0x42, 0x42 }, Payload = new byte[] { 0x01, 0x10 } };
 
-        //     byte[] b = sentP.Encode();
+            byte[] b = sentP.Encode();
 
-        //     Packet p = Packet.Unpack(b);
+            Packet p = Packet.Unpack(b);
 
-        //     Assert.AreEqual(p.GetType(), typeof(InitialPacket));
-        //     InitialPacket recP = p as InitialPacket;
+            Assert.AreEqual(p.GetType(), typeof(InitialPacket));
+            InitialPacket recP = p as InitialPacket;
 
-        //     Assert.AreEqual((UInt32)4, recP.DCIDLength);
-        //     Assert.AreEqual((UInt32)4321, recP.DCID);
-        //     Assert.AreEqual((UInt32)4, recP.SCIDLength);
-        //     Assert.AreEqual((UInt32)1045, recP.SCID);
-        //     Assert.AreEqual((UInt32)2, recP.PacketNumberLength);
-        //     Assert.AreEqual((UInt32)1234, recP.PacketNumber);
-        //     Assert.AreEqual((UInt64)3, recP.TokenLength.Value);
-        //     Assert.AreEqual((UInt32)4242, recP.Token);
-        //     Assert.AreEqual((UInt64)24, recP.Length.Value);
-        // }
+            // TODO: fix copy/paste of values between InitialPacket declaration and assertions (deep clone sentP ?)
+            Assert.AreEqual((UInt32)2, recP.DCIDLength);
+            CollectionAssert.AreEqual(new byte[] { 0xab, 0xcd }, recP.DCID);
+            Assert.AreEqual((UInt32)3, recP.SCIDLength);
+            CollectionAssert.AreEqual(new byte[] { 0x12, 0x23, 0xcf }, recP.SCID);
+            Assert.AreEqual((UInt32)2, recP.PacketNumberLength);
+            Assert.AreEqual((UInt32)1234, recP.PacketNumber);
+            Assert.AreEqual((UInt64)2, recP.TokenLength.Value);
+            CollectionAssert.AreEqual(new byte[] { 0x42, 0x42 }, recP.Token);
+            Assert.AreEqual((UInt64)4, recP.Length.Value); // 4 = PacketNumberLength + Payload.Length
+            CollectionAssert.AreEqual(new byte[] { 0x01, 0x10 }, recP.Payload);
+        }
 
         [TestMethod]
         public void TestInitialPacketDecode()
@@ -56,7 +59,7 @@ namespace quicsharp.tests
             // Assert.AreEqual((UInt32)1, recP.PacketNumberLength); 
             // Assert.AreEqual((UInt32)0, recP.PacketNumber);
             Assert.AreEqual((UInt64)0, recP.TokenLength.Value);
-            Assert.AreEqual((UInt32)0, recP.Token);
+            CollectionAssert.AreEqual(new byte[] { }, recP.Token);
             Assert.AreEqual((UInt64)1187, recP.Length.Value);
         }
     }

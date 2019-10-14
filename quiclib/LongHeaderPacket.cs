@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -26,6 +26,8 @@ namespace quicsharp
         protected new static int packetHeaderSize_ = 15;
         protected static int maxCID_ = 20;
 
+        public uint currentSupportedVersion => 0xff000017; // Only draft-23 is supported
+
         public uint PacketType;
         public uint Version;
         public uint DCIDLength;
@@ -34,13 +36,10 @@ namespace quicsharp
         public byte[] SCID;
         new public byte[] Payload;
 
-        // Start bit indexes of 
-        protected static int packetTypeBit_ = 2;
-        protected static int versionBit_ = 8;
-        protected static int DCIDLengthBit_ = 40;
-        protected static int destinationConnectionIdBit_ = 48;
-        protected static int SCIDLengthBit_ = 80;
-        protected static int sourceConnectionIdBit_ = 88;
+        private uint headerSizeInBytes()
+        {
+            return 1 + 4 + 1 + DCIDLength + 1 + SCIDLength;
+        }
 
         public override int Decode(byte[] data)
         {
@@ -56,6 +55,8 @@ namespace quicsharp
             // Read version
             Version = BitUtils.ReadUInt32(cursor, data);
             cursor += 32;
+            if (Version != currentSupportedVersion)
+                throw new NotImplementedException("Unsupported packet version");
 
             // Read DCID Len
             DCIDLength = BitUtils.ReadByte(cursor, data);
@@ -93,20 +94,30 @@ namespace quicsharp
 
         public override byte[] Encode()
         {
-            byte[] packet = new byte[packetHeaderSize_];
+            byte[] packet = new byte[headerSizeInBytes()];
             BitUtils.WriteBit(0, packet, true);
             BitUtils.WriteBit(1, packet, true);
+            int cursor = 8;
 
-            BitUtils.WriteUInt32(versionBit_, packet, Version);
+            Version = currentSupportedVersion;
+            BitUtils.WriteUInt32(cursor, packet, Version);
+            cursor += 32;
 
-            BitUtils.WriteNByteFromInt(DCIDLengthBit_, packet, (uint)DCIDLength, 1);
-            BitUtils.WriteUInt32(destinationConnectionIdBit_, packet, DCID);
+            BitUtils.WriteNByteFromInt(cursor, packet, (uint)DCIDLength, 1);
+            cursor += 8;
 
+            Array.Copy(DCID, 0, packet, cursor / 8, DCIDLength);
+            // TODO: use a ulong for cursor
+            cursor += 8 * (int)DCIDLength;
 
-            BitUtils.WriteNByteFromInt(SCIDLengthBit_, packet, (uint)SCIDLength, 1);
-            BitUtils.WriteUInt32(sourceConnectionIdBit_, packet, SCID);
+            BitUtils.WriteNByteFromInt(cursor, packet, (uint)SCIDLength, 1);
+            cursor += 8;
 
-            // payload encoding is left to type-speficic classes
+            Array.Copy(SCID, 0, packet, cursor / 8, SCIDLength);
+            // TODO: use a ulong for cursor
+            cursor += 8 * (int)SCIDLength;
+
+            // payload encoding is left to type-specific classes
             return packet;
         }
     }
