@@ -100,7 +100,7 @@ namespace quicsharp
 
             packetNumberBitsIndex_ = lpack.Count * 8;
 
-            lpack.AddRange(new byte[PacketNumberLength]); // Length + PacketNumber
+            lpack.AddRange(new byte[PacketNumberLength]);
             lpack.AddRange(Payload);
 
             // Set packet type to "Initial Packet"
