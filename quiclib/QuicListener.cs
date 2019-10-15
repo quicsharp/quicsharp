@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Collections.Generic;
 
 using quicsharp.Frames;
 
@@ -54,6 +55,19 @@ namespace quicsharp
                     if (packet is InitialPacket)
                     {
                         HandleInitialPacket(packet as InitialPacket, client);
+                    }
+                    else if (packet is ShortHeaderPacket)
+                    {
+                        // TEMP: Write every stream frame
+                        packet.DecodeFrames();
+
+                        foreach(Frame frame in packet.Frames)
+                        {
+                            if (frame is StreamFrame)
+                            {
+                                Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(frame.Content)}");
+                            }
+                        }
                     }
                 }
                 catch (CorruptedPacketException e)

@@ -77,5 +77,13 @@ namespace quicsharp
             client_.Close();
             Connected = false;
         }
+
+        // Create a Stream
+        // TODO: Specifying if the stream is bidirectional or unidirectional
+        public QuicStream CreateStream()
+        {
+            // TODO: choose a stream ID
+            return serverConnection_.CreateStream(new VariableLengthInteger(42), 0);
+        }
     }
 }
