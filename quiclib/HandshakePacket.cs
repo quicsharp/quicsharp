@@ -11,11 +11,8 @@ namespace quicsharp
         public VariableLengthInteger Length = new VariableLengthInteger(0);
         new public byte[] Payload;
 
-        private static int reservedBitsIndex_ = 4;
-        private static int packetNumberLengthBitsIndex_ = 6;
-        private int packetNumberBitsIndex_;
-
-
+        private static int reservedBitsIndex_ => 4;
+        private static int packetNumberLengthBitsIndex_ => 6;
 
         /*
            +-+-+-+-+-+-+-+-+
@@ -73,7 +70,7 @@ namespace quicsharp
             Length.Value = (ulong)PacketNumberLength + (ulong)Payload.Length;
             lpack.AddRange(Length.Encode());
 
-            packetNumberBitsIndex_ = lpack.Count * 8;
+            int packetNumberBitsIndex_ = lpack.Count * 8;
 
             lpack.AddRange(new byte[PacketNumberLength]);
             lpack.AddRange(Payload);
