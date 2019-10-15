@@ -44,26 +44,26 @@ namespace quicsharp
 
         public override int Decode(byte[] data)
         {
-            base.Decode(data);
+            int cursor = base.Decode(data);
             if (PacketType != 1)
-                throw new ArgumentException("Wrong Packet type");
+                throw new ArgumentException("Wrong packet type");
             ReservedBits = BitUtils.ReadNBits(reservedBitsIndex_, data, 2);
 
             PacketNumberLength = BitUtils.ReadNBits(packetNumberLengthBitsIndex_, data, 2) + 1;
-            if (PacketNumberLength > 5 || PacketNumberLength == 0)
-                throw new Exception("Invalid Packet Number Length");
-            Length.Decode(payloadStartBit_, data);
-            if ((UInt64)data.Length != Length.Value)
-                throw new CorruptedPacketException($"Initial Packet does not have the correct size. Expected: {Length.Value} | Actual: {data.Length}");
+            if (PacketNumberLength >= 5 || PacketNumberLength == 0)
+                throw new Exception("Invalid packet Number Length");
 
-            packetNumberBitsIndex_ = payloadStartBit_ + Length.Size;
-            PacketNumber = (uint)BitUtils.ReadNBytes(packetNumberBitsIndex_, data, PacketNumberLength);
+            cursor += Length.Decode(cursor, data);
+            if ((UInt64)data.Length != Length.Value + (UInt64)cursor / 8)
+                throw new CorruptedPacketException($"0-RTT packet does not have the correct size. Expected: {Length.Value + (UInt64)cursor / 8} | Actual: {data.Length}");
 
-            Payload = new byte[data.Length - (packetNumberBitsIndex_ / 8) - PacketNumberLength];
-            Array.Copy(data, packetNumberBitsIndex_ / 8 + PacketNumberLength, Payload, 0, Payload.Length);
+            PacketNumber = (uint)BitUtils.ReadNBytes(cursor, data, PacketNumberLength);
+            cursor += (Int32)PacketNumberLength * 8;
 
-            // TODO: fix this
-            return 0;
+            Payload = new byte[data.Length - (cursor / 8)];
+            Array.Copy(data, cursor / 8, Payload, 0, Payload.Length);
+            cursor += 8 * Payload.Length;
+            return cursor;
         }
 
 
@@ -71,41 +71,25 @@ namespace quicsharp
         {
             List<byte> lpack = new List<byte>(base.Encode());
 
-            Payload = EncodeFrames();
-
-            Length.Value = (ulong)lpack.Count + (ulong)Payload.Length + (ulong)PacketNumberLength + 1;
-            Length.Value = Length.Value + (ulong)(Length.Size / 8);
+            Length.Value = (ulong)PacketNumberLength + (ulong)Payload.Length;
             lpack.AddRange(Length.Encode());
-            lpack.AddRange(new byte[PacketNumberLength + 1]); // Length + PacketNumber
+
+            packetNumberBitsIndex_ = lpack.Count * 8;
+
+            lpack.AddRange(new byte[PacketNumberLength]);
             lpack.AddRange(Payload);
 
-            byte[] packet = lpack.ToArray();
+            // Set packet type to "0-RTT Packet"
+            lpack[0] &= 0b11001111; // clear
+            lpack[0] += 0b00010000;
 
-            BitUtils.WriteBit(2, packet, false);
-            BitUtils.WriteBit(3, packet, true);
-            switch (PacketNumberLength - 1)
-            {
-                case 0:
-                    BitUtils.WriteBit(6, packet, false);
-                    BitUtils.WriteBit(7, packet, false);
-                    BitUtils.WriteNByteFromInt(packetNumberBitsIndex_, packet, PacketNumber, 1);
-                    break;
-                case 1:
-                    BitUtils.WriteBit(6, packet, false);
-                    BitUtils.WriteBit(7, packet, true);
-                    BitUtils.WriteNByteFromInt(packetNumberBitsIndex_, packet, PacketNumber, 2);
-                    break;
-                case 2:
-                    BitUtils.WriteBit(6, packet, true);
-                    BitUtils.WriteBit(7, packet, false);
-                    BitUtils.WriteNByteFromInt(packetNumberBitsIndex_, packet, PacketNumber, 3);
-                    break;
-                case 3:
-                    BitUtils.WriteBit(6, packet, true);
-                    BitUtils.WriteBit(7, packet, true);
-                    BitUtils.WriteNByteFromInt(packetNumberBitsIndex_, packet, PacketNumber, 4);
-                    break;
-            }
+            // Set packet number length
+            lpack[0] &= 0b11111100; // clear
+            lpack[0] += Convert.ToByte(PacketNumberLength - 1);
+
+            // Set packet number
+            byte[] packet = lpack.ToArray();
+            BitUtils.WriteNByteFromInt(packetNumberBitsIndex_, packet, PacketNumber, (int)PacketNumberLength);
 
             return packet;
         }
