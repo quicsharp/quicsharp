@@ -9,34 +9,7 @@ namespace quicsharp.tests
     [TestClass]
     public class TestLongHeaderPacket
     {
-        [TestMethod]
-        public void TestHandshakePacket()
-        {
-            HandshakePacket sentP = new HandshakePacket
-            {
-                DCIDLength = 4,
-                DCID = new byte[] { 0x00, 0x00, 0x1a, 0x85 },
-                PacketNumberLength = 3,
-                SCIDLength = 4,
-                SCID = new byte[] { 0x00, 0x00, 0x09, 0x34 },
-                PacketNumber = 91235,
-            };
 
-            byte[] b = sentP.Encode();
-
-            Packet p = Packet.Unpack(b);
-
-            Assert.AreEqual(p.GetType(), typeof(HandshakePacket));
-            HandshakePacket recP = p as HandshakePacket;
-
-            Assert.AreEqual((UInt32)4, recP.DCIDLength);
-            CollectionAssert.AreEqual(new byte[] { 0x00, 0x00, 0x1a, 0x85 }, recP.DCID);
-            Assert.AreEqual((UInt32)4, recP.SCIDLength);
-            CollectionAssert.AreEqual(new byte[] { 0x00, 0x00, 0x09, 0x34 }, recP.SCID);
-            Assert.AreEqual((UInt32)3, recP.PacketNumberLength);
-            Assert.AreEqual((UInt32)91235, recP.PacketNumber);
-            Assert.AreEqual((UInt64)20, recP.Length.Value);
-        }
 
         [TestMethod]
         public void TestRetryPacket()
