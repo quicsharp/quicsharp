@@ -8,14 +8,7 @@ namespace quicsharp
     {
         public byte[] RetryToken;
         public uint ODCIDLength;
-        public uint ODCID;
-
-        private static int ODCIDLengthBitsIndex_ = 120;
-        private static int ODCIDBitsIndex_ = 128;
-        private static int tokenBitsIndex_ = 160;
-
-
-
+        public byte[] ODCID;
 
         /*
            +-+-+-+-+-+-+-+-+
@@ -41,37 +34,44 @@ namespace quicsharp
 
         public override int Decode(byte[] data)
         {
-            base.Decode(data);
+            int cursor = base.Decode(data);
             if (PacketType != 3)
-                throw new ArgumentException("Wrong Packet type");
+                throw new ArgumentException("Wrong packet type");
 
-            ODCIDLength = BitUtils.ReadByte(ODCIDLengthBitsIndex_, data);
-            if (ODCIDLength != 4)
-                throw new ArgumentException("In our implementation, we limit ourselves to 32 bits Destination connection IDs");
+            // Read ODCID Len
+            ODCIDLength = BitUtils.ReadByte(cursor, data);
+            if (ODCIDLength > maxCID_)
+                // Section 17.2: Endpoints that receive
+                // a version 1 long header with a value larger than 20 MUST drop the
+                // packet
+                // TODO: skip this when functioning in server mode
+                throw new CorruptedPacketException("Original DCID Len exceeded max value of 20");
+            cursor += 8;
 
-            ODCID = BitUtils.ReadUInt32(ODCIDBitsIndex_, data);
+            // Read ODCID
+            ODCID = new byte[ODCIDLength];
+            Array.Copy(data, cursor / 8, ODCID, 0, ODCIDLength);
+            cursor += Convert.ToInt32(8 * ODCIDLength);
 
-            RetryToken = new byte[data.Length - (tokenBitsIndex_ / 8)];
-            Array.Copy(data, tokenBitsIndex_ / 8, RetryToken, 0, RetryToken.Length);
-
-            // TODO: fix this
-            return 0;
+            RetryToken = new byte[data.Length - (cursor / 8)];
+            Array.Copy(data, cursor / 8, RetryToken, 0, RetryToken.Length);
+            cursor += 8 * RetryToken.Length;
+            return cursor;
         }
 
         public override byte[] Encode()
         {
             List<byte> lpack = new List<byte>(base.Encode());
 
-            lpack.AddRange(new byte[5]); // OCDID length + value
+            lpack.Add(Convert.ToByte(ODCIDLength));
+            lpack.AddRange(ODCID);
             lpack.AddRange(RetryToken);
-            byte[] packet = lpack.ToArray();
 
-            BitUtils.WriteNByteFromInt(ODCIDLengthBitsIndex_, packet, (uint)ODCIDLength, 1);
-            BitUtils.WriteUInt32(ODCIDBitsIndex_, packet, ODCID);
+            // Set packet type to "Retry Packet"
+            lpack[0] &= 0b11001111; // clear
+            lpack[0] += 0b00110000;
 
-            BitUtils.WriteBit(2, packet, true);
-            BitUtils.WriteBit(3, packet, true);
-            return packet;
+            return lpack.ToArray();
         }
     }
 }
