@@ -8,11 +8,13 @@ namespace quicsharp
 {
     public class QuicConnection
     {
-        protected IPEndPoint endpoint_;
-        protected UdpClient socket_;
+        private IPEndPoint endpoint_;
+        private UdpClient socket_;
 
         protected PacketManager packetManager_;
         protected Dictionary<UInt64, QuicStream> streams_;
+
+        protected Packet currentPacket_;
 
         public QuicConnection(UdpClient socket, IPEndPoint endPoint, byte[] scid, byte[] dcid)
         {
@@ -68,6 +70,42 @@ namespace quicsharp
             packetManager_.DCID = dcid;
 
             return true;
+        }
+
+        // Add frame to the current packet. This current packet will be sent when the QuicConnection decides so.
+        // For the moment the current packet is always a ShortHeaderPacket, and it is sent after one frame is added.
+        public void AddFrame(Frame frame)
+        {
+            if (socket_ == null || endpoint_ == null)
+                throw new NullReferenceException();
+            // TODO: only ShortHeaderPacket for now
+            if (currentPacket_ == null)
+                currentPacket_ = new ShortHeaderPacket();
+
+            currentPacket_.AddFrame(frame);
+
+            // TODO: decide when to send the packet
+            SendCurrentPacket();
+        }
+
+        public int SendCurrentPacket()
+        {
+            if (currentPacket_ == null)
+                throw new CorruptedPacketException();
+            byte[] encodedPacket = currentPacket_.Encode();
+            int sentBytes = socket_.Send(encodedPacket, encodedPacket.Length, endpoint_);
+
+            currentPacket_ = null;
+
+            return sentBytes;
+        }
+
+        public QuicStream GetStream(UInt64 id)
+        {
+            if (!streams_.ContainsKey(id))
+                throw new ArgumentException($"The Quic Stream id {id} does not exist");
+
+            return streams_[id];
         }
     }
 }
