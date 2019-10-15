@@ -23,9 +23,10 @@ namespace quicsharp.tests
                 SCID = new byte[] { 0x12, 0x23, 0xcf },
                 PacketNumber = 1234,
                 TokenLength = new VariableLengthInteger(2),
-                Token = new byte[] { 0x42, 0x42 },
-                Payload = new byte[] { 0x01, 0x10 }
+                Token = new byte[] { 0x42, 0x42 }
             };
+            sentP.AddFrame(new PaddingFrame());
+            sentP.AddFrame(new PaddingFrame());
 
             byte[] b = sentP.Encode();
 
@@ -44,7 +45,7 @@ namespace quicsharp.tests
             Assert.AreEqual((UInt64)2, recP.TokenLength.Value);
             CollectionAssert.AreEqual(new byte[] { 0x42, 0x42 }, recP.Token);
             Assert.AreEqual((UInt64)4, recP.Length.Value); // 4 = PacketNumberLength + Payload.Length
-            CollectionAssert.AreEqual(new byte[] { 0x01, 0x10 }, recP.Payload);
+            CollectionAssert.AreEqual(new byte[] { 0x00, 0x00 }, recP.Payload); // Double Padding frame
         }
 
         [TestMethod]

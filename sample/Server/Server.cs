@@ -17,7 +17,7 @@ namespace quicsharp.sample
 
             do
             {
-                port = rnd.Next(1024, 65335);
+                port = 8908;
                 isAvailable = true;
                 TcpConnectionInformation[] tcpConnInfoArray = ipGlobalProperties.GetActiveTcpConnections();
 

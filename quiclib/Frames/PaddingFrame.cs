@@ -4,7 +4,7 @@ using System.Text;
 
 namespace quicsharp.Frames
 {
-    class PaddingFrame : Frame
+    public class PaddingFrame : Frame
     {
         public override byte Type => 0x00;
 

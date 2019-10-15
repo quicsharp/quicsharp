@@ -23,7 +23,7 @@ namespace quicsharp
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
            |           Payload (depending on the type of the packet)     ...
          */
-        protected new static int packetHeaderSize_ = 15;
+        protected new static int packetHeaderSize_ = 10;
         protected static int maxCID_ = 20;
 
         public uint currentSupportedVersion => 0xff000017; // Only draft-23 is supported
@@ -34,7 +34,6 @@ namespace quicsharp
         public byte[] DCID;
         public uint SCIDLength;
         public byte[] SCID;
-        new public byte[] Payload;
 
         private uint headerSizeInBytes()
         {
