@@ -58,12 +58,12 @@ namespace quicsharp
         {
             int cursor = base.Decode(data);
             if (PacketType != 0)
-                throw new ArgumentException("Wrong Packet type");
+                throw new ArgumentException("Wrong packet type");
             ReservedBits = BitUtils.ReadNBits(reservedBitsIndex_, data, 2);
 
             PacketNumberLength = BitUtils.ReadNBits(packetNumberLengthBitsIndex_, data, 2) + 1;
             if (PacketNumberLength >= 5 || PacketNumberLength == 0)
-                throw new Exception("Invalid Packet Number Length");
+                throw new Exception("Invalid packet Number Length");
 
             cursor += TokenLength.Decode(cursor, data);
 
@@ -74,7 +74,7 @@ namespace quicsharp
 
             cursor += Length.Decode(cursor, data);
             if ((UInt64)data.Length != Length.Value + (UInt64)cursor / 8)
-                throw new CorruptedPacketException($"Initial Packet does not have the correct size. Expected: {Length.Value + (UInt64)cursor / 8} | Actual: {data.Length}");
+                throw new CorruptedPacketException($"Initial packet does not have the correct size. Expected: {Length.Value + (UInt64)cursor / 8} | Actual: {data.Length}");
 
             PacketNumber = (uint)BitUtils.ReadNBytes(cursor, data, PacketNumberLength);
             cursor += (Int32)PacketNumberLength * 8;
