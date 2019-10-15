@@ -40,5 +40,28 @@ namespace quicsharp.tests
             byte[] result = sf.Encode();
             CollectionAssert.AreEqual(result, expected);
         }
+
+        [TestMethod]
+        public void TestEncodeDecode()
+        {
+            UInt64 streamID = 15293;                    // 0x7b, 0xbd
+            UInt64 offset = 494878333;                  // 0x9d, 0x7f, 0x3e, 0x7d
+            byte[] data = new byte[] { 0x42, 0x43 };    // implicit length: 2
+            bool isLastFrameOfPacket = false;           // length should be provided
+            bool isEndOfStream = false;                 // FIN bit should be set to 0
+
+            Frames.StreamFrame sentsf = new Frames.StreamFrame(streamID, offset, data, isLastFrameOfPacket, isEndOfStream);
+            byte[] result = sentsf.Encode();
+
+            Frames.StreamFrame recvsf = new Frames.StreamFrame();
+            recvsf.Decode(result, 0);
+
+            Assert.AreEqual(recvsf._OFF, true);
+            Assert.AreEqual(recvsf._LEN, true);
+            Assert.AreEqual(recvsf._FIN, isEndOfStream);
+            Assert.AreEqual(recvsf._streamID.Value, Convert.ToUInt64(15293));
+            Assert.AreEqual(recvsf._offset.Value, Convert.ToUInt64(494878333));
+            CollectionAssert.AreEqual(recvsf._data, new byte[] { 0x42, 0x43 });
+        }
     }
 }
