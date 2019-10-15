@@ -12,7 +12,7 @@ namespace quicsharp
         private UdpClient client_;
         private UInt32 packetNumber_;
 
-        private ServerConnection serverConnection_;
+        private QuicServerConnection serverConnection_;
 
         public bool Connected;
 
@@ -27,6 +27,7 @@ namespace quicsharp
         public void Connect(string ip, int port)
         {
             InitialPacket initialPacket = new InitialPacket(new byte[] { }, new byte[] { }, packetNumber_++);
+            initialPacket.AddFrame(new PaddingFrame());
 
             byte[] byteInitialPacket = initialPacket.Encode();
             client_.Send(byteInitialPacket, byteInitialPacket.Length, ip, port);
@@ -42,7 +43,7 @@ namespace quicsharp
 
                 InitialPacket initPack = packet as InitialPacket;
                 Console.WriteLine($"I am client n {initPack.DCID} connected to server n {initPack.SCID}");
-                serverConnection_ = new ServerConnection(new UdpClient(), server, initPack.DCID, initPack.SCID);
+                serverConnection_ = new QuicServerConnection(new UdpClient(), server, initPack.DCID, initPack.SCID);
                 Connected = true;
             }
         }

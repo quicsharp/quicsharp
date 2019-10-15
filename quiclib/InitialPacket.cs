@@ -7,9 +7,9 @@ namespace quicsharp
     public sealed class InitialPacket : LongHeaderPacket
     {
         public uint ReservedBits = 0;
-        public uint PacketNumberLength;
+        public uint PacketNumberLength = 1;
         public VariableLengthInteger TokenLength = new VariableLengthInteger(0);
-        public byte[] Token;
+        public byte[] Token = new byte[0];
         public VariableLengthInteger Length = new VariableLengthInteger(0);
 
         private static int reservedBitsIndex_ = 4;
@@ -88,6 +88,7 @@ namespace quicsharp
         public override byte[] Encode()
         {
             List<byte> lpack = new List<byte>(base.Encode());
+            Payload = EncodeFrames();
 
             if (TokenLength.Value != (UInt64)Token.Length)
                 throw new CorruptedPacketException("mismatch between Token.Length and TokenLength");

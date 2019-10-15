@@ -10,23 +10,24 @@ namespace quicsharp
     {
         // Section 12.3
         private UInt32 packetNumber_ = 0;
-        private byte[] connectionID_ = new byte[] { };
-        private byte[] peerConnectionID_ = new byte[] { };
+        public byte[] SCID = new byte[] { };
+        public byte[] DCID = new byte[] { };
 
         public Dictionary<UInt32, Packet> History = new Dictionary<UInt32, Packet>();
         public List<UInt32> Received = new List<UInt32>();
 
-        public PacketManager(byte[] connectionID, byte[] peerConnectionID)
+        public PacketManager(byte[] scid, byte[] dcid)
         {
-            connectionID_ = connectionID;
-            peerConnectionID_ = peerConnectionID;
+            SCID = scid;
+            DCID = dcid;
         }
 
+        // TODO: Remove this
         public ShortHeaderPacket CreateDataPacket(byte[] data)
         {
             ShortHeaderPacket packet = new ShortHeaderPacket
             {
-                DestinationConnectionID = peerConnectionID_,
+                DestinationConnectionID = DCID,
                 PacketNumber = packetNumber_,
                 PacketNumberLengthByte = 3,
                 // TODO: frames
@@ -37,6 +38,7 @@ namespace quicsharp
             return packet;
         }
 
+        // Process a ack frame to remove packets that were acknowledged from the history
         public UInt32 ProcessAckFrame(AckFrame frame)
         {
             UInt32 ack = 0;

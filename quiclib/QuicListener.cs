@@ -75,10 +75,12 @@ namespace quicsharp
             initPack.DecodeFrames();
             Console.WriteLine("Data received {0}:{1}.", client.Address, client.Port);
 
-            QuicConnection qc = new QuicConnection(client);
+            QuicClientConnection qc = new QuicClientConnection(new UdpClient(), client, new byte[0], id_);
             byte[] dcid = ConnectionPool.AddConnection(qc);
+            qc.SetDCID(dcid);
 
             InitialPacket initialPacket = new InitialPacket(dcid, id_, 0);
+            initialPacket.AddFrame(new PaddingFrame());
             byte[] b = initialPacket.Encode();
             server_.Send(b, b.Length, client);
         }

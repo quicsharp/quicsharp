@@ -12,7 +12,8 @@ namespace quicsharp
 
         public FrameParser(byte[] content)
         {
-            content_ = content;
+            content_ = new byte[content.Length];
+            Array.Copy(content, content_, content.Length);
         }
 
         public List<Frame> GetFrames()
