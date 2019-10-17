@@ -29,7 +29,7 @@ namespace quicsharp
             {
                 DCID = DCID,
                 PacketNumber = packetNumber_,
-                PacketNumberLengthByte = 3,
+                PacketNumberLength = 4,
                 // TODO: frames
                 Payload = data,
             };

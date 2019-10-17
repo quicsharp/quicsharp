@@ -10,11 +10,10 @@ namespace quicsharp
         protected new static int packetHeaderSize_ = 9;
         public bool Spin = false;
         public bool KeyPhase = false;
-        public int PacketNumberLengthByte = 1;
 
         // Only 4 bytes DCID is used for now
         public byte[] DCID = new byte[4];
-        public uint PacketNumberLength;
+        public uint PacketNumberLength = 4;
 
         private int spinBit_ = 2;
         private int keyPhaseBit_ = 3;
@@ -66,8 +65,8 @@ namespace quicsharp
             BitUtils.WriteBit(spinBit_, packet, Spin);
             BitUtils.WriteBit(keyPhaseBit_, packet, KeyPhase);
 
-            BitUtils.WriteBit(packetLengthBit_, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
-            BitUtils.WriteBit(packetLengthBit_ + 1, packet, ((PacketNumberLengthByte - 1) % 2) == 1);
+            BitUtils.WriteBit(packetLengthBit_, packet, ((PacketNumberLength - 1) / 2) == 1);
+            BitUtils.WriteBit(packetLengthBit_ + 1, packet, ((PacketNumberLength - 1) % 2) == 1);
 
             Array.Copy(DCID, 0, packet, destinationConnectionIDBit_ / 8, 4);
 
