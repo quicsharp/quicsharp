@@ -16,13 +16,13 @@ namespace quicsharp.tests
             // Offset: 9d 7f 3e 7d = 494878333
 
             Frames.StreamFrame sf = new Frames.StreamFrame();
-            sf.Decode(b, 3);
+            Assert.AreEqual(8 * 8, sf.Decode(b, 3));
             Assert.AreEqual(sf._OFF, true);
             Assert.AreEqual(sf._LEN, false);
             Assert.AreEqual(sf._FIN, true);
             Assert.AreEqual(sf._streamID.Value, Convert.ToUInt64(37));
             Assert.AreEqual(sf._offset.Value, Convert.ToUInt64(494878333));
-            CollectionAssert.AreEqual(sf._data, new byte[] { 0x42 });
+            CollectionAssert.AreEqual(sf.Data, new byte[] { 0x42 });
         }
 
         [TestMethod]
@@ -61,7 +61,7 @@ namespace quicsharp.tests
             Assert.AreEqual(recvsf._FIN, isEndOfStream);
             Assert.AreEqual(recvsf._streamID.Value, Convert.ToUInt64(15293));
             Assert.AreEqual(recvsf._offset.Value, Convert.ToUInt64(494878333));
-            CollectionAssert.AreEqual(recvsf._data, new byte[] { 0x42, 0x43 });
+            CollectionAssert.AreEqual(recvsf.Data, new byte[] { 0x42, 0x43 });
         }
     }
 }

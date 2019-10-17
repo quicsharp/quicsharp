@@ -10,9 +10,10 @@ namespace quicsharp
         protected new static int packetHeaderSize_ = 9;
         public bool Spin = false;
         public bool KeyPhase = false;
-        public int PacketNumberLengthByte = 4;
+        public int PacketNumberLengthByte = 1;
 
-        public byte[] DestinationConnectionID = new byte[4];
+        // Only 4 bytes DCID is used for now
+        public byte[] DCID = new byte[4];
         public uint PacketNumberLength;
 
         private int spinBit_ = 2;
@@ -24,9 +25,6 @@ namespace quicsharp
         {
             if (data.Length < packetHeaderSize_)
                 throw new AccessViolationException("QUIC packet too small for a ShortHeaderPacket");
-
-            // TODO: Remove
-            ClientId = 42;
 
             /* 
                +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -45,10 +43,10 @@ namespace quicsharp
             // Reserved bits (R) are unused
             PacketNumberLength = BitUtils.ReadNBits(packetLengthBit_, data, 2) + 1;
 
-            Array.Copy(data, destinationConnectionIDBit_ / 8, DestinationConnectionID, 0, 4);
+            Array.Copy(data, destinationConnectionIDBit_ / 8, DCID, 0, 4);
             PacketNumber = (uint)BitUtils.ReadNBytes(packetNumberBit_, data, PacketNumberLength);
 
-            Payload = new byte[data.Length - packetHeaderSize_ - PacketNumberLength];
+            Payload = new byte[data.Length - packetHeaderSize_];
             Array.Copy(data, packetHeaderSize_, Payload, 0, Payload.Length);
 
             // TODO: fix this
@@ -71,7 +69,7 @@ namespace quicsharp
             BitUtils.WriteBit(packetLengthBit_, packet, ((PacketNumberLengthByte - 1) / 2) == 1);
             BitUtils.WriteBit(packetLengthBit_ + 1, packet, ((PacketNumberLengthByte - 1) % 2) == 1);
 
-            Array.Copy(DestinationConnectionID, 0, packet, destinationConnectionIDBit_ / 8, 4);
+            Array.Copy(DCID, 0, packet, destinationConnectionIDBit_ / 8, 4);
 
             // TODO: Write N bits
             BitUtils.WriteUInt32(packetNumberBit_, packet, Convert.ToUInt32(PacketNumber));

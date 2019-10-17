@@ -25,7 +25,7 @@ namespace quicsharp.Frames
         public VariableLengthInteger _streamID = new VariableLengthInteger(0);
         public VariableLengthInteger _offset = new VariableLengthInteger(0);
         public VariableLengthInteger _length = new VariableLengthInteger(0);
-        public byte[] _data;
+        public byte[] Data { get; private set; }
 
         // Frame type bits indicate the presence of the fields
         public bool _OFF; // bit 0x04
@@ -50,7 +50,7 @@ namespace quicsharp.Frames
             _FIN = isEndOfStream;
             _writableType = Convert.ToByte(0b00001000 + (_OFF ? (1 << 2) : 0) + (_LEN ? (1 << 1) : 0) + (_FIN ? (1 << 0) : 0));
 
-            _data = data;
+            Data = data;
         }
 
         public override int Decode(byte[] content, int begin)
@@ -85,11 +85,11 @@ namespace quicsharp.Frames
                 _length = new VariableLengthInteger(Convert.ToUInt64(content.Length) - Convert.ToUInt64(cursor));
             }
 
-            _data = new byte[_length.Value];
+            Data = new byte[_length.Value];
 
             // TODO: error handling if source packet is not long enough
-            Array.Copy(content, cursor, _data, 0, Convert.ToInt32(_length.Value));
-            return (cursor + Convert.ToInt32(_length.Value) - begin) / 8;
+            Array.Copy(content, cursor, Data, 0, Convert.ToInt32(_length.Value));
+            return (cursor + Convert.ToInt32(_length.Value) - begin) * 8;
         }
 
         public override byte[] Encode()
@@ -101,7 +101,7 @@ namespace quicsharp.Frames
                 content.AddRange(_offset.Encode());
             if (_LEN)
                 content.AddRange(_length.Encode());
-            content.AddRange(_data);
+            content.AddRange(Data);
 
             return content.ToArray();
         }

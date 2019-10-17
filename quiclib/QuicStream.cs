@@ -45,6 +45,8 @@ namespace quicsharp
             Array.Copy(buffer, offset, data, 0, size);
             // TODO: may split the message on multiple frames
             StreamFrame frame = new StreamFrame(StreamId, 0, data, true, false);
+
+            connection_.AddFrame(frame);
         }
     }
 }
