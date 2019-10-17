@@ -35,7 +35,6 @@ namespace quicsharp
             rng.GetBytes(SCID);
 
             InitialPacket initialPacket = new InitialPacket(DCID, SCID, packetNumber_++);
-            initialPacket.AddFrame(new PaddingFrame());
 
             byte[] byteInitialPacket = initialPacket.Encode();
             client_.Send(byteInitialPacket, byteInitialPacket.Length, ip, port);
