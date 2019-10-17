@@ -38,8 +38,8 @@ namespace quicsharp.tests
             Assert.AreEqual(pack[0] & 0x40, 0x40); // Second bit
             Assert.AreEqual(pack[0] & 0x20, 0);
             Assert.AreEqual(pack[0] & 0x04, 0);
-            Assert.AreEqual(pack[0] & 0x02, 0x00);
-            Assert.AreEqual(pack[0] & 0x01, 0x00);
+            Assert.AreEqual(pack[0] & 0x02, 0x02);
+            Assert.AreEqual(pack[0] & 0x01, 0x01);
 
             Assert.AreEqual(pack[1], 0);
             Assert.AreEqual(pack[2], 0);
@@ -82,7 +82,7 @@ namespace quicsharp.tests
             Assert.AreEqual(sh.PacketNumber, (UInt64)42);
             Assert.AreEqual(sh.Spin, false);
             Assert.AreEqual(sh.KeyPhase, false);
-            Assert.AreEqual(sh.PacketNumberLengthByte, 4);
+            Assert.AreEqual(sh.PacketNumberLength, (UInt32)4);
 
             foreach (Frame f in p.Frames)
             {
