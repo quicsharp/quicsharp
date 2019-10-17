@@ -27,7 +27,7 @@ namespace quicsharp
         {
             ShortHeaderPacket packet = new ShortHeaderPacket
             {
-                DestinationConnectionID = DCID,
+                DCID = DCID,
                 PacketNumber = packetNumber_,
                 PacketNumberLengthByte = 3,
                 // TODO: frames

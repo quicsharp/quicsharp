@@ -65,7 +65,8 @@ namespace quicsharp
                         {
                             if (frame is StreamFrame)
                             {
-                                Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(frame.Content)}");
+                                StreamFrame sf = frame as StreamFrame;
+                                Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
                             }
                         }
                     }

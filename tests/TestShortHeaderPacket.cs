@@ -16,7 +16,7 @@ namespace quicsharp.tests
             ShortHeaderPacket shp = new ShortHeaderPacket();
 
             shp.PacketNumber = 42;
-            shp.DestinationConnectionID = new byte[] { 0x00, 0x00, 0x00, 0x7b };
+            shp.DCID = new byte[] { 0x00, 0x00, 0x00, 0x7b };
             shp.AddFrame(new DebugFrame { Message = "Message" });
 
             byte[] pack = shp.Encode();
@@ -38,8 +38,8 @@ namespace quicsharp.tests
             Assert.AreEqual(pack[0] & 0x40, 0x40); // Second bit
             Assert.AreEqual(pack[0] & 0x20, 0);
             Assert.AreEqual(pack[0] & 0x04, 0);
-            Assert.AreEqual(pack[0] & 0x02, 0x02);
-            Assert.AreEqual(pack[0] & 0x01, 0x01);
+            Assert.AreEqual(pack[0] & 0x02, 0x00);
+            Assert.AreEqual(pack[0] & 0x01, 0x00);
 
             Assert.AreEqual(pack[1], 0);
             Assert.AreEqual(pack[2], 0);
@@ -68,7 +68,7 @@ namespace quicsharp.tests
             ShortHeaderPacket shp = new ShortHeaderPacket();
 
             shp.PacketNumber = 42;
-            shp.DestinationConnectionID = new byte[] { 0x00, 0x00, 0x00, 0x7b };
+            shp.DCID = new byte[] { 0x00, 0x00, 0x00, 0x7b };
             shp.AddFrame(new DebugFrame { Message = "Message" });
 
             byte[] pack = shp.Encode();
@@ -78,8 +78,7 @@ namespace quicsharp.tests
             Assert.AreEqual(p.GetType(), typeof(ShortHeaderPacket));
             ShortHeaderPacket sh = p as ShortHeaderPacket;
 
-            Assert.AreEqual(p.ClientId, (UInt32)42);
-            CollectionAssert.AreEqual(sh.DestinationConnectionID, new byte[] { 0x00, 0x00, 0x00, 0x7b });
+            CollectionAssert.AreEqual(sh.DCID, new byte[] { 0x00, 0x00, 0x00, 0x7b });
             Assert.AreEqual(sh.PacketNumber, (UInt64)42);
             Assert.AreEqual(sh.Spin, false);
             Assert.AreEqual(sh.KeyPhase, false);
