@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+
+using quicsharp.Frames;
 
 namespace quicsharp
 {
@@ -87,13 +90,21 @@ namespace quicsharp
         public override byte[] Encode()
         {
             List<byte> lpack = new List<byte>(base.Encode());
-            Payload = EncodeFrames();
 
             if (TokenLength.Value != (UInt64)Token.Length)
                 throw new CorruptedPacketException("mismatch between Token.Length and TokenLength");
 
             lpack.AddRange(TokenLength.Encode());
             lpack.AddRange(Token);
+
+            // Append padding frames so that the UDP datagram is at least 1200 bytes, per the spec
+            // TODO: make this more efficient by computing the minimum number of padding frames needed
+            byte[] padding = Enumerable.Repeat(new PaddingFrame().Type, 1200).ToArray();
+
+            // TODO: use List<> everywhere instead of arrays?
+            List<byte> PayloadList = new List<byte>(EncodeFrames());
+            PayloadList.AddRange(padding);
+            Payload = PayloadList.ToArray();
 
             Length.Value = (ulong)PacketNumberLength + (ulong)Payload.Length;
             lpack.AddRange(Length.Encode());
