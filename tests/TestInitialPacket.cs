@@ -25,8 +25,6 @@ namespace quicsharp.tests
                 TokenLength = new VariableLengthInteger(2),
                 Token = new byte[] { 0x42, 0x42 }
             };
-            sentP.AddFrame(new PaddingFrame());
-            sentP.AddFrame(new PaddingFrame());
 
             byte[] b = sentP.Encode();
 
@@ -35,17 +33,16 @@ namespace quicsharp.tests
             Assert.AreEqual(p.GetType(), typeof(InitialPacket));
             InitialPacket recP = p as InitialPacket;
 
-            // TODO: fix copy/paste of values between InitialPacket declaration and assertions (deep clone sentP ?)
-            Assert.AreEqual((UInt32)2, recP.DCIDLength);
-            CollectionAssert.AreEqual(new byte[] { 0xab, 0xcd }, recP.DCID);
-            Assert.AreEqual((UInt32)3, recP.SCIDLength);
-            CollectionAssert.AreEqual(new byte[] { 0x12, 0x23, 0xcf }, recP.SCID);
-            Assert.AreEqual((UInt32)2, recP.PacketNumberLength);
-            Assert.AreEqual((UInt32)1234, recP.PacketNumber);
-            Assert.AreEqual((UInt64)2, recP.TokenLength.Value);
-            CollectionAssert.AreEqual(new byte[] { 0x42, 0x42 }, recP.Token);
-            Assert.AreEqual((UInt64)4, recP.Length.Value); // 4 = PacketNumberLength + Payload.Length
-            CollectionAssert.AreEqual(new byte[] { 0x00, 0x00 }, recP.Payload); // Double Padding frame
+            Assert.AreEqual(sentP.DCIDLength, recP.DCIDLength);
+            CollectionAssert.AreEqual(sentP.DCID, recP.DCID);
+            Assert.AreEqual(sentP.SCIDLength, recP.SCIDLength);
+            CollectionAssert.AreEqual(sentP.SCID, recP.SCID);
+            Assert.AreEqual(sentP.PacketNumberLength, recP.PacketNumberLength);
+            Assert.AreEqual(sentP.PacketNumber, recP.PacketNumber);
+            Assert.AreEqual(sentP.TokenLength.Value, recP.TokenLength.Value);
+            CollectionAssert.AreEqual(sentP.Token, recP.Token);
+            Assert.AreEqual(sentP.PacketNumberLength + 1200, recP.Length.Value); // 4 = PacketNumberLength + Payload.Length
+            // TODO: assert payload content
         }
 
         [TestMethod]
