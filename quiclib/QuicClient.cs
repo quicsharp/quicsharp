@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Security.Cryptography;
 
 using quicsharp.Frames;
 
@@ -26,7 +27,14 @@ namespace quicsharp
         // Connect to a remote server.
         public void Connect(string ip, int port)
         {
-            InitialPacket initialPacket = new InitialPacket(new byte[] { }, new byte[] { }, packetNumber_++);
+            // Create random DCID and SCID
+            byte[] DCID = new byte[8];
+            byte[] SCID = new byte[8];
+            RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(DCID);
+            rng.GetBytes(SCID);
+
+            InitialPacket initialPacket = new InitialPacket(DCID, SCID, packetNumber_++);
             initialPacket.AddFrame(new PaddingFrame());
 
             byte[] byteInitialPacket = initialPacket.Encode();
