@@ -12,7 +12,7 @@ namespace quicsharp.Frames
         {
             if (content.Length < 1 + (begin / 8))
                 throw new ArgumentException();
-            if (content[begin] != Type)
+            if (content[begin / 8] != Type)
                 throw new ArgumentException("Wrong frame type created");
 
             return 8;
