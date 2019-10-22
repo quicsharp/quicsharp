@@ -17,10 +17,13 @@ namespace quicsharp
 
         public int Port { get; private set; }
 
+        private ConnectionPool connectionPool_;
+
         public QuicListener(int port)
         {
             started_ = false;
             Port = port;
+            connectionPool_ = new ConnectionPool();
         }
 
         // Starts the listener
@@ -54,20 +57,26 @@ namespace quicsharp
                 {
                     HandleInitialPacket(packet as InitialPacket, client);
                 }
-                else if (packet is RTTPacket)
+                else  if (packet is ShortHeaderPacket)
                 {
-                    // TEMP: Write every stream frame
                     packet.DecodeFrames();
 
-                    foreach(Frame frame in packet.Frames)
+                    foreach (Frame frame in packet.Frames)
                     {
-
-                        if (frame is StreamFrame)
-                        {
-                            StreamFrame sf = frame as StreamFrame;
-                            Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
-                        }
+                        StreamFrame sf = frame as StreamFrame;
+                        Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
                     }
+                } else
+                {
+                    packet = packet as LongHeaderPacket;
+                    // The available connection pool for new client connections currently ranges from 4096 to 2**24
+                    if ((packet as LongHeaderPacket).SCIDLength > 24)
+                        throw new IndexOutOfRangeException("SCID should only be encoded on 3 bytes so far");
+                    uint scid = BitConverter.ToUInt32((packet as LongHeaderPacket).SCID, 0);
+
+                    QuicConnection connection = connectionPool_.Find(scid);
+                    Console.WriteLine($"Received Packet from connectionID {scid} with the following frames :");
+                    connection.ReadPacket(packet);
                 }
             }
             catch (CorruptedPacketException e)
@@ -89,7 +98,7 @@ namespace quicsharp
             Console.WriteLine("Data received {0}:{1}.", client.Address, client.Port);
 
             QuicClientConnection qc = new QuicClientConnection(new UdpClient(), client, new byte[0], id_);
-            byte[] dcid = ConnectionPool.AddConnection(qc);
+            byte[] dcid = connectionPool_.AddConnection(qc);
             qc.SetDCID(dcid);
 
             InitialPacket initialPacket = new InitialPacket(dcid, id_, 0);
