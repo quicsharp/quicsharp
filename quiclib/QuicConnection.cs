@@ -47,6 +47,11 @@ namespace quicsharp
                     StreamFrame sf = frame as StreamFrame;
                     Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
                 }
+                if (frame is AckFrame)
+                {
+                    AckFrame sf = frame as AckFrame;
+                    Console.WriteLine($"Received AckFrame with message: {sf.ToString()}");
+                }
             }
         }
 
