@@ -40,6 +40,11 @@ namespace quicsharp
             return 1 + 4 + 1 + DCIDLength + 1 + SCIDLength;
         }
 
+        /// <summary>
+        /// Decode the raw packet.
+        /// </summary>
+        /// <param name="data">The raw packet</param>
+        /// <returns>Number of bits read</returns>
         public override int Decode(byte[] data)
         {
             if (data.Length < packetHeaderSize_)
@@ -91,6 +96,10 @@ namespace quicsharp
             return cursor;
         }
 
+        /// <summary>
+        /// Encode the packet to a byte array. Encode the Header of the long header packets.
+        /// </summary>
+        /// <returns>The raw packet</returns>
         public override byte[] Encode()
         {
             byte[] packet = new byte[headerSizeInBytes()];

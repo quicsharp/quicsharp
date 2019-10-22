@@ -12,6 +12,7 @@ namespace quicsharp
         public bool KeyPhase = false;
 
         // Only 4 bytes DCID is used for now
+        // TODO: refactor to use DCID as a byte[]
         public byte[] DCID = new byte[4];
         public uint PacketNumberLength = 4;
 
@@ -20,6 +21,12 @@ namespace quicsharp
         private int packetLengthBit_ = 6;
         private int destinationConnectionIDBit_ = 8;
         private int packetNumberBit_ = 40;
+
+        /// <summary>
+        /// Decode the raw packet.
+        /// </summary>
+        /// <param name="data">The raw packet</param>
+        /// <returns>Number of bits read</returns>
         public override int Decode(byte[] data)
         {
             if (data.Length < packetHeaderSize_)
@@ -52,6 +59,10 @@ namespace quicsharp
             return 0;
         }
 
+        /// <summary>
+        /// Encode the packet to a byte array. Encode the Header then the payload with all the frames.
+        /// </summary>
+        /// <returns>The raw packet</returns>
         public override byte[] Encode()
         {
             Payload = EncodeFrames();
