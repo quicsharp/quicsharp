@@ -4,12 +4,19 @@ using System.Text;
 
 namespace quicsharp
 {
+    /// <summary>
+    /// This is an unsigned integer as described in section 16.
+    /// Is encoded on 8, 16, 32 or 64 bits depending on the 2 first bits.
+    /// </summary>
     public class VariableLengthInteger
     {
         public int Size { get; private set; } // Number of bits
 
         private UInt64 value_;
 
+        /// <summary>
+        /// The value setter also modify the size of the integer.
+        /// </summary>
         public UInt64 Value
         {
             get
@@ -49,6 +56,10 @@ namespace quicsharp
             Value = (UInt64)v;
         }
 
+        /// <summary>
+        /// Encode the integer on the correct amount of bits.
+        /// </summary>
+        /// <returns>The encoded integer</returns>
         public byte[] Encode()
         {
             byte[] encoded = new byte[Size / 8];
@@ -67,6 +78,12 @@ namespace quicsharp
             return encoded;
         }
 
+        /// <summary>
+        /// Decode a variable length integer in data starting at bit n° indexBegin
+        /// </summary>
+        /// <param name="indexBegin">Bit of the begining of the integer</param>
+        /// <param name="data">Raw data</param>
+        /// <returns>The number of bits read</returns>
         public int Decode(int indexBegin, byte[] data)
         {
             // TODO: Check input
