@@ -12,6 +12,7 @@ namespace quicsharp
         public List<Frame> Frames { get; protected set; } = new List<Frame>();
 
         public UInt32 PacketNumber = 0;
+        public bool IsAckEliciting = false;
 
         // Byte
         protected static int packetHeaderSize_ = 4;
@@ -69,6 +70,7 @@ namespace quicsharp
             //    throw new ArgumentException("The payload is empty. Can't decode frames");
 
             Frames = fp.GetFrames();
+            IsAckEliciting = fp.IsAckEliciting;
         }
 
         public virtual void AddFrame(Frame frame)

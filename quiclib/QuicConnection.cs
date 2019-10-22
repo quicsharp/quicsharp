@@ -1,4 +1,5 @@
-﻿using System;
+﻿using quicsharp.Frames;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -13,6 +14,9 @@ namespace quicsharp
         private UInt64 lastStreamId_;
 
         protected PacketManager packetManager_;
+        // TODO : split awaiting frames by packet space
+        protected Queue<Frame> awaitingFrames_;
+        public List<UInt32> Received = new List<UInt32>();
         protected Dictionary<UInt64, QuicStream> streams_;
 
         protected Packet currentPacket_;
@@ -43,6 +47,13 @@ namespace quicsharp
                 throw new ApplicationException("QUIC Server did not respond.");
 
             Packet packet = new Packet { Payload = peerData };
+
+            // Store received PacketNumber for further implementation of acknowledgement procedure
+            Received.Add(packet.PacketNumber);
+
+            // Generate a new Ack Frame and send it directly
+            AckFrame ack = new AckFrame(new List<UInt32>() { packet.PacketNumber }, 100);
+            AddFrame(ack);
 
             return packet;
         }

@@ -9,6 +9,7 @@ namespace quicsharp
     class FrameParser
     {
         private byte[] content_;
+        public bool IsAckEliciting = false;
 
         public FrameParser(byte[] content)
         {
@@ -61,6 +62,20 @@ namespace quicsharp
                     case 0x1d: throw new NotImplementedException(); // ConnectionCloseFrame(); break;
                     case 0x1e: results.Add(new DebugFrame()); break;
                     default: results.Add(null); break;
+                }
+
+                if(frameType > 0x03 || frameType == 0x01)
+                {
+                    /* https://tools.ietf.org/html/draft-ietf-quic-recovery-23#section-2
+                     * Ack-eliciting Frames:  All frames besides ACK or PADDING are
+                          considered ack-eliciting.
+
+                       Ack-eliciting Packets:  Packets that contain ack-eliciting frames
+                          elicit an ACK from the receiver within the maximum ack delay and
+                          are called ack-eliciting packets.
+                     */
+
+                    IsAckEliciting = true;
                 }
 
                 if (results[results.Count - 1] != null)
