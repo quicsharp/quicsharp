@@ -35,9 +35,6 @@ namespace quicsharp
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
 
-        // TODO: remove once refactoring for variable length SCID and DCID is complete
-        static int payloadStartBit_ = 120;
-
         public RTTPacket()
         {
         }
