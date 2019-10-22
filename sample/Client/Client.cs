@@ -1,10 +1,10 @@
 ﻿using quicsharp;
 using System;
-using System.Net.NetworkInformation;
+using System.Threading;
 
 namespace Client
 {
-    class Client
+    class ClientChat
     {
         static void Main()
         {
@@ -17,25 +17,68 @@ namespace Client
                 username = Console.ReadLine();
             }
 
-            QuicClient client = new QuicClient();
+            Client client = new Client(username);
+            client.Start();
+        }
+    }
+
+    class Client
+    {
+        private QuicClient client_;
+        private QuicStream stream_;
+        private string username_;
+
+        public Client(string username)
+        {
+            username_ = username;
+        }
+
+        public void Start()
+        {
+            client_ = new QuicClient();
+            Thread t = new Thread(new ThreadStart(ReceiveMessage));
+
+            t.Start();
 
             try
             {
-                client.Connect("127.0.0.1", 8880);
+                client_.Connect("127.0.0.1", 8880);
 
-                QuicStream qc = client.CreateStream();
+                stream_ = client_.CreateStream();
                 while (true)
                 {
-                    Console.Write("Your message: ");
-                    string str = username + ": " + Console.ReadLine();
+                    Console.Write("# Your message: ");
+                    string str = username_ + ": " + Console.ReadLine();
                     byte[] b = System.Text.Encoding.UTF8.GetBytes(str);
-                    qc.Write(b, 0, b.Length);
+                    stream_.Write(b, 0, b.Length);
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("Couldn't connect to the server port {port}");
                 Console.WriteLine(e.Message);
+            }
+        }
+
+        public void ReceiveMessage()
+        {
+            byte[] buffer = new byte[512];
+
+            Console.WriteLine("Listening to messages...");
+
+            while (true)
+            {
+                //int readBytes = stream_.Receive(buffer, 0, buffer.Length);
+                Thread.Sleep(10000);
+                Console.SetCursorPosition(0, Console.CursorTop - 1);
+
+                int currentLineCursor = Console.CursorTop;
+                Console.SetCursorPosition(0, Console.CursorTop);
+                Console.Write(new string(' ', Console.WindowWidth));
+                Console.SetCursorPosition(0, currentLineCursor);
+
+                Console.WriteLine("--- New Message ---");
+                Console.Write("# Your message: ");
             }
         }
     }
