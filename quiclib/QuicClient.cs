@@ -55,7 +55,7 @@ namespace quicsharp
             }
         }
 
-        public int Send(byte[] payload)
+        private int Send(byte[] payload)
         {
             if (!Connected)
                 return -1;
@@ -82,8 +82,8 @@ namespace quicsharp
         // TODO: Specifying if the stream is bidirectional or unidirectional
         public QuicStream CreateStream()
         {
-            // TODO: choose a stream ID
-            return serverConnection_.CreateStream(new VariableLengthInteger(42), 0);
+            // TODO: choose a stream type
+            return serverConnection_.CreateStream(0);
         }
     }
 }

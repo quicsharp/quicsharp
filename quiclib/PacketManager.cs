@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Net.Sockets;
+using System.Net;
 
 using quicsharp.Frames;
 
@@ -22,20 +23,21 @@ namespace quicsharp
             DCID = dcid;
         }
 
-        // TODO: Remove this
-        public ShortHeaderPacket CreateDataPacket(byte[] data)
+        public void PreparePacket(Packet packet)
         {
-            ShortHeaderPacket packet = new ShortHeaderPacket
+            if (packet is LongHeaderPacket)
             {
-                DCID = DCID,
-                PacketNumber = packetNumber_,
-                PacketNumberLength = 4,
-                // TODO: frames
-                Payload = data,
-            };
-            packetNumber_++;
-
-            return packet;
+                LongHeaderPacket lhp = packet as LongHeaderPacket;
+                lhp.DCID = DCID;
+                lhp.DCIDLength = (UInt32)DCID.Length;
+                lhp.SCID = SCID;
+                lhp.SCIDLength = (UInt32)SCID.Length;
+            }
+            if (!(packet is RetryPacket))
+            {
+                packet.PacketNumber = ++packetNumber_;
+                Register(packet, packet.PacketNumber);
+            }
         }
 
         // Process a ack frame to remove packets that were acknowledged from the history

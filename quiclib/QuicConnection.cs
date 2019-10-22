@@ -10,6 +10,7 @@ namespace quicsharp
     {
         private IPEndPoint endpoint_;
         private UdpClient socket_;
+        private UInt64 lastStreamId_;
 
         protected PacketManager packetManager_;
         protected Dictionary<UInt64, QuicStream> streams_;
@@ -22,12 +23,14 @@ namespace quicsharp
             endpoint_ = endPoint;
             streams_ = new Dictionary<UInt64, QuicStream>();
             packetManager_ = new PacketManager(scid, dcid);
+            lastStreamId_ = 0;
         }
 
-        public QuicStream CreateStream(VariableLengthInteger id, byte type)
+        public QuicStream CreateStream(byte type)
         {
-            QuicStream stream = new QuicStream(this, id, type);
-            streams_.Add(id.Value, stream);
+            lastStreamId_++;
+            QuicStream stream = new QuicStream(this, new VariableLengthInteger(lastStreamId_), type);
+            streams_.Add(lastStreamId_, stream);
 
             return stream;
         }
@@ -46,12 +49,11 @@ namespace quicsharp
 
         public int SendPacket(Packet packet)
         {
-            byte[] data = packet.Payload;
+            packetManager_.PreparePacket(packet);
+
+            byte[] data = packet.Encode();
 
             int sent = socket_.Send(data, data.Length, endpoint_);
-
-            if (packet.PacketNumber != 0)
-                packetManager_.Register(packet, packet.PacketNumber);
 
             // If some bytes were sent
             return sent;
@@ -80,7 +82,8 @@ namespace quicsharp
                 throw new NullReferenceException();
             // TODO: only ShortHeaderPacket for now
             if (currentPacket_ == null)
-                currentPacket_ = new ShortHeaderPacket();
+                // TO CHECK: use 0-RTT packet to send non encrypted data
+                currentPacket_ = new RTTPacket();
 
             currentPacket_.AddFrame(frame);
 
@@ -92,8 +95,7 @@ namespace quicsharp
         {
             if (currentPacket_ == null)
                 throw new CorruptedPacketException();
-            byte[] encodedPacket = currentPacket_.Encode();
-            int sentBytes = socket_.Send(encodedPacket, encodedPacket.Length, endpoint_);
+            int sentBytes = SendPacket(currentPacket_);
 
             currentPacket_ = null;
 

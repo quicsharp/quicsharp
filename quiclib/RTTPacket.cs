@@ -7,9 +7,8 @@ namespace quicsharp
     public sealed class RTTPacket : LongHeaderPacket
     {
         public uint ReservedBits = 0;
-        public uint PacketNumberLength;
+        public uint PacketNumberLength = 4;
         public VariableLengthInteger Length = new VariableLengthInteger(0);
-        new public byte[] Payload;
 
         private static int reservedBitsIndex_ => 4;
         private static int packetNumberLengthBitsIndex_ => 6;
@@ -39,6 +38,19 @@ namespace quicsharp
         // TODO: remove once refactoring for variable length SCID and DCID is complete
         static int payloadStartBit_ = 120;
 
+        public RTTPacket()
+        {
+        }
+
+        public RTTPacket(byte[] dcid, byte[] scid, uint packetNumber)
+        {
+            PacketNumber = packetNumber;
+            DCID = dcid;
+            DCIDLength = (uint)dcid.Length;
+            SCID = scid;
+            SCIDLength = (uint)scid.Length;
+        }
+
         public override int Decode(byte[] data)
         {
             int cursor = base.Decode(data);
@@ -67,6 +79,7 @@ namespace quicsharp
         public override byte[] Encode()
         {
             List<byte> lpack = new List<byte>(base.Encode());
+            Payload = EncodeFrames();
 
             Length.Value = (ulong)PacketNumberLength + (ulong)Payload.Length;
             lpack.AddRange(Length.Encode());

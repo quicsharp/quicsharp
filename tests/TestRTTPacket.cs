@@ -20,8 +20,11 @@ namespace quicsharp.tests
                 SCIDLength = 2,
                 SCID = new byte[] { 0x09, 0x34 },
                 PacketNumber = 91235,
-                Payload = new byte[] { 0x01, 0x10 },
             };
+
+            // Create a size 2 payload
+            sentP.AddFrame(new PaddingFrame());
+            sentP.AddFrame(new PaddingFrame());
 
             byte[] b = sentP.Encode();
 

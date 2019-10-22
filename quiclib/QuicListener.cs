@@ -56,13 +56,14 @@ namespace quicsharp
                     {
                         HandleInitialPacket(packet as InitialPacket, client);
                     }
-                    else if (packet is ShortHeaderPacket)
+                    else if (packet is RTTPacket)
                     {
                         // TEMP: Write every stream frame
                         packet.DecodeFrames();
 
                         foreach(Frame frame in packet.Frames)
                         {
+
                             if (frame is StreamFrame)
                             {
                                 StreamFrame sf = frame as StreamFrame;
