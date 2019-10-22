@@ -32,6 +32,11 @@ namespace quicsharp
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
 
+        /// <summary>
+        /// Decode the raw packet.
+        /// </summary>
+        /// <param name="data">The raw packet</param>
+        /// <returns>Number of bits read</returns>
         public override int Decode(byte[] data)
         {
             int cursor = base.Decode(data);
@@ -59,6 +64,10 @@ namespace quicsharp
             return cursor;
         }
 
+        /// <summary>
+        /// Encode the packet to a byte array. Encode the Header then the payload with all the frames.
+        /// </summary>
+        /// <returns>The raw packet</returns>
         public override byte[] Encode()
         {
             List<byte> lpack = new List<byte>(base.Encode());

@@ -8,10 +8,6 @@ namespace quicsharp
     {
         // Section 12.3 Table 3
         public abstract byte Type { get; }
-        
-        public byte[] Content;
-        // False if the frame seems corrupted
-        public bool Healthy = false;
 
         public abstract byte[] Encode();
         // Return the number of byte read

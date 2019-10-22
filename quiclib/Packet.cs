@@ -14,9 +14,15 @@ namespace quicsharp
         public UInt32 PacketNumber = 0;
         public bool IsAckEliciting = false;
 
-        // Byte
+        // In bytes
         protected static int packetHeaderSize_ = 4;
 
+        /// <summary>
+        /// Factory that creates the correct Packet type according to the payload
+        /// Decode the received payload
+        /// </summary>
+        /// <param name="data">The raw packet received</param>
+        /// <returns></returns>
         public static Packet Unpack(byte[] data)
         {
             if (data.Length < packetHeaderSize_)
@@ -25,6 +31,7 @@ namespace quicsharp
             }
             Packet p;
 
+            // Short header packets starts with the bits | 0 | 1 |
             if (!BitUtils.ReadBit(0, data))
             {
                 // Short Header Packet
@@ -34,11 +41,13 @@ namespace quicsharp
 
                 p.Decode(data);
             }
+            // Long header packets starts with the bits | 1 | 1 |
             else
             {
                 // Long Header Packet
                 if (!BitUtils.ReadBit(1, data))
                     throw new ArgumentException("Corrupted packet");
+                // The two next bits describe the type of the Long Header Packet
                 switch (BitUtils.ReadNBits(2, data, 2))
                 {
                     case 0:
@@ -62,22 +71,33 @@ namespace quicsharp
             return p;
         }
 
+        /// <summary>
+        /// This method is called after the packet header has been decoded. It reads the payload and get
+        /// the different frames out of it. 
+        /// </summary>
         public virtual void DecodeFrames()
         {
             FrameParser fp = new FrameParser(Payload);
             if (Payload.Length == 0)
                 return;
-            //    throw new ArgumentException("The payload is empty. Can't decode frames");
 
             Frames = fp.GetFrames();
             IsAckEliciting = fp.IsAckEliciting;
         }
 
+        /// <summary>
+        /// Add a frame to the payload (not encoded yet).
+        /// </summary>
+        /// <param name="frame">The frame to add to the packet</param>
         public virtual void AddFrame(Frame frame)
         {
             Frames.Add(frame);
         }
 
+        /// <summary>
+        /// Encode the frames previously added with AddFrame in the payload.
+        /// </summary>
+        /// <returns>The raw payload</returns>
         public virtual byte[] EncodeFrames()
         {
             List<byte> result = new List<byte>();
@@ -89,12 +109,20 @@ namespace quicsharp
             return result.ToArray();
         }
 
-        // Decode should return number of bits read
+        /// <summary>
+        /// Decode the raw packet.
+        /// </summary>
+        /// <param name="data">The raw packet</param>
+        /// <returns>Number of bits read</returns>
         public virtual int Decode(byte[] data)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Encode the packet to a byte array.
+        /// </summary>
+        /// <returns>The raw packet</returns>
         public virtual byte[] Encode()
         {
             throw new NotImplementedException();

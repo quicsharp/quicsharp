@@ -36,9 +36,6 @@ namespace quicsharp
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
 
-        // TODO: remove once refactoring for variable length SCID and DCID is complete
-        static int payloadStartBit_ = 120;
-
         public override int Decode(byte[] data)
         {
             int cursor = base.Decode(data);
