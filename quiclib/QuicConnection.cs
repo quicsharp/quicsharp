@@ -1,4 +1,5 @@
-﻿using System;
+﻿using quicsharp.Frames;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -35,16 +36,18 @@ namespace quicsharp
             return stream;
         }
 
-        public Packet ReadPacket()
+        public void ReadPacket(Packet packet)
         {
-            // Await response for sucessfull connection creation by the server
-            byte[] peerData = socket_.Receive(ref endpoint_);
-            if (peerData == null)
-                throw new ApplicationException("QUIC Server did not respond.");
+            packet.DecodeFrames();
 
-            Packet packet = new Packet { Payload = peerData };
-
-            return packet;
+            foreach (Frame frame in packet.Frames)
+            {
+                if (frame is StreamFrame)
+                {
+                    StreamFrame sf = frame as StreamFrame;
+                    Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
+                }
+            }
         }
 
         public int SendPacket(Packet packet)
