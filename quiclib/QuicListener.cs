@@ -7,6 +7,9 @@ using quicsharp.Frames;
 
 namespace quicsharp
 {
+    /// <summary>
+    /// Main class for a Quic Server.
+    /// </summary>
     public class QuicListener
     {
         private UdpClient server_;

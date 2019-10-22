@@ -10,30 +10,11 @@ namespace quicsharp.sample
     {
         static void Main()
         {
-            int port;
-            bool isAvailable;
-            IPGlobalProperties ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
-            Random rnd = new Random();
-
-            do
-            {
-                port = 8908;
-                isAvailable = true;
-                TcpConnectionInformation[] tcpConnInfoArray = ipGlobalProperties.GetActiveTcpConnections();
-
-                foreach (TcpConnectionInformation tcpi in tcpConnInfoArray)
-                {
-                    if (tcpi.LocalEndPoint.Port == port)
-                    {
-                        isAvailable = false;
-                        break;
-                    }
-                }
-            } while (!isAvailable);
-
-            Console.WriteLine("First port available chosen : {0}", port);
+            int port = 8880;
 
             QuicListener server = new QuicListener(port);
+
+            Console.WriteLine("Server listening on port : {0}", port);
 
             server.Start();
 
