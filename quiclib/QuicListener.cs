@@ -43,44 +43,41 @@ namespace quicsharp
             if (!started_)
                 throw new InvalidOperationException("QuicListener is not started but is waiting for packets");
 
-            while (true)
+            IPEndPoint client = null;
+
+            try
             {
-                IPEndPoint client = null;
+                // Listening
+                Packet packet = Packet.Unpack(server_.Receive(ref client));
 
-                try
+                if (packet is InitialPacket)
                 {
-                    // Listening
-                    Packet packet = Packet.Unpack(server_.Receive(ref client));
+                    HandleInitialPacket(packet as InitialPacket, client);
+                }
+                else if (packet is RTTPacket)
+                {
+                    // TEMP: Write every stream frame
+                    packet.DecodeFrames();
 
-                    if (packet is InitialPacket)
+                    foreach(Frame frame in packet.Frames)
                     {
-                        HandleInitialPacket(packet as InitialPacket, client);
-                    }
-                    else if (packet is RTTPacket)
-                    {
-                        // TEMP: Write every stream frame
-                        packet.DecodeFrames();
 
-                        foreach(Frame frame in packet.Frames)
+                        if (frame is StreamFrame)
                         {
-
-                            if (frame is StreamFrame)
-                            {
-                                StreamFrame sf = frame as StreamFrame;
-                                Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
-                            }
+                            StreamFrame sf = frame as StreamFrame;
+                            Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
                         }
                     }
                 }
-                catch (CorruptedPacketException e)
-                {
-                    Console.WriteLine($"Received a corrupted QUIC packet {e.Message}");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Source);
-                    throw e;
-                }
+            }
+            catch (CorruptedPacketException e)
+            {
+                Console.WriteLine($"Received a corrupted QUIC packet {e.Message}");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Source);
+                throw e;
             }
         }
 
