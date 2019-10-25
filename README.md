@@ -4,7 +4,7 @@
 
 This project is based on the [IETF QUIC Transport draft v23](https://datatracker.ietf.org/doc/draft-ietf-quic-transport/23/).
 
-It is an experimental project, and the goal is to implement QUIC over UDP as a C# library. This is a school project, so due to time constraints, some parts of the implementation don't perfectly match the draft.
+It is an experimental project, and the goal is to implement QUIC over UDP as a C# library. This is a school project, so due to time constraints, some parts of the implementation don't perfectly match the draft. It is not actively maintained.
 
 ## State of the project
 
