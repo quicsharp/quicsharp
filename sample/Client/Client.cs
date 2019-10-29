@@ -48,7 +48,14 @@ namespace Client
                 while (true)
                 {
                     Console.Write("# Your message: ");
-                    string str = username_ + ": " + Console.ReadLine();
+                    string input = Console.ReadLine();
+                    string str = username_ + ": " + input;
+                    int currentLineCursor = Console.CursorTop - 1;
+                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    Console.Write(new string(' ', Console.WindowWidth));
+                    Console.SetCursorPosition(0, currentLineCursor);
+                    Console.WriteLine("You: " + input);
+
                     byte[] b = System.Text.Encoding.UTF8.GetBytes(str);
                     stream_.Write(b, 0, b.Length);
                 }
@@ -70,7 +77,7 @@ namespace Client
             {
                 //int readBytes = stream_.Receive(buffer, 0, buffer.Length);
                 Thread.Sleep(10000);
-                Console.SetCursorPosition(0, Console.CursorTop - 1);
+                Console.SetCursorPosition(0, Console.CursorTop);
 
                 int currentLineCursor = Console.CursorTop;
                 Console.SetCursorPosition(0, Console.CursorTop);
