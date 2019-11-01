@@ -71,7 +71,6 @@ namespace quicsharp
                 mutex.WaitOne();
                 awaitingFrames.AddRange(packet.Frames);
                 mutex.ReleaseMutex();
-                Console.WriteLine($"Awaiting frames : {awaitingFrames.ToString()}");
             }
         }
 

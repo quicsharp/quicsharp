@@ -21,6 +21,10 @@ namespace quicsharp
 
         protected Packet currentPacket_;
 
+        // Debug variable. Set it from 0 to 100
+        // Simulate packet loss by not sending the packet.
+        static public int PacketLossPercentage = 0;
+
         public QuicConnection(UdpClient socket, IPEndPoint endPoint, byte[] scid, byte[] dcid)
         {
             socket_ = socket;
@@ -41,6 +45,9 @@ namespace quicsharp
 
         public void ReadPacket(Packet packet)
         {
+            if (packetManager_.IsPacketOld(packet))
+                return;
+
             packet.DecodeFrames();
 
             foreach (Frame frame in packet.Frames)
@@ -52,10 +59,15 @@ namespace quicsharp
                 }
                 if (frame is AckFrame)
                 {
-                    AckFrame sf = frame as AckFrame;
-                    Console.WriteLine($"Received AckFrame with message: {sf.ToString()}");
+                    AckFrame af = frame as AckFrame;
+                    Console.WriteLine($"Received AckFrame");
+                    packetManager_.ProcessAckFrame(af);
+
+                    ResendNonAckPackets(af);
                 }
             }
+
+            Console.WriteLine($"History length: {packetManager_.History.Count}");
 
             // Store received PacketNumber for further implementation of acknowledgement procedure
             Received.Add(packet.PacketNumber);
@@ -66,17 +78,40 @@ namespace quicsharp
                 AckFrame ack = new AckFrame(new List<UInt32>() { packet.PacketNumber }, 100);
                 AddFrame(ack);
             }
-            
-            return ;
+        }
+
+        public void ResendNonAckPackets(AckFrame af)
+        {
+            Random rnd = new Random();
+            // Send every packet not ack with a packet number lower than the highest packet number acknowledgded by the AckFrame
+            foreach (KeyValuePair<UInt32, Packet> packet in packetManager_.History)
+            {
+                if (af.LargestAcknowledged.Value > packet.Key)
+                {
+                    byte[] data = packet.Value.Encode();
+
+                    Console.WriteLine($"Packet number {packet.Key} sent again");
+
+                    // Simulate packet loss
+                    if (rnd.Next(100) > PacketLossPercentage)
+                        socket_.Send(data, data.Length, endpoint_);
+                    else
+                        Console.WriteLine("Packet not sent");
+                    
+                }
+            }
         }
 
         public int SendPacket(Packet packet)
         {
+            Random rnd = new Random();
             packetManager_.PreparePacket(packet);
 
             byte[] data = packet.Encode();
 
-            int sent = socket_.Send(data, data.Length, endpoint_);
+            int sent = 0;
+            if (rnd.Next(100) > PacketLossPercentage)
+                sent = socket_.Send(data, data.Length, endpoint_);
 
             // If some bytes were sent
             return sent;

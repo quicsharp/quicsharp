@@ -91,6 +91,8 @@ namespace quicsharp
         /// <param name="frame">The frame to add to the packet</param>
         public virtual void AddFrame(Frame frame)
         {
+            if (frame.Type == 0x01 || frame.Type > 0x03)
+                IsAckEliciting = true;
             Frames.Add(frame);
         }
 

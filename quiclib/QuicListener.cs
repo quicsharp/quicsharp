@@ -60,16 +60,7 @@ namespace quicsharp
                 {
                     HandleInitialPacket(packet as InitialPacket, client);
                 }
-                else  if (packet is ShortHeaderPacket)
-                {
-                    packet.DecodeFrames();
-
-                    foreach (Frame frame in packet.Frames)
-                    {
-                        StreamFrame sf = frame as StreamFrame;
-                        Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
-                    }
-                } else
+                else
                 {
                     packet = packet as LongHeaderPacket;
                     // The available connection pool for new client connections currently ranges from 4096 to 2**24

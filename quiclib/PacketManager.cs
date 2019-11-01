@@ -15,7 +15,7 @@ namespace quicsharp
         public byte[] DCID = new byte[] { };
 
         public Dictionary<UInt32, Packet> History = new Dictionary<UInt32, Packet>();
-        public List<UInt32> Received = new List<UInt32>();
+        private Dictionary<UInt32, bool> received_ = new Dictionary<UInt32, bool>();
 
         public PacketManager(byte[] scid, byte[] dcid)
         {
@@ -64,9 +64,25 @@ namespace quicsharp
             return ack;
         }
 
+        /// <summary>
+        /// Return true if the packet was already received at least once.
+        /// </summary>
+        public bool IsPacketOld(Packet packet)
+        {
+            if (packet is RetryPacket)
+                return true;
+
+            if (received_.ContainsKey(packet.PacketNumber))
+                return true;
+
+            received_.Add(packet.PacketNumber, true);
+            return false;
+        }
+
         public void Register(Packet p, UInt32 packetNumber)
         {
-            History.Add(packetNumber, p);
+            if (p.IsAckEliciting)
+                History.Add(packetNumber, p);
         }
     }
 }
