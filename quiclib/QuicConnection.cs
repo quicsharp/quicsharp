@@ -61,9 +61,12 @@ namespace quicsharp
             Received.Add(packet.PacketNumber);
 
             // Generate a new Ack Frame and send it directly
-            AckFrame ack = new AckFrame(new List<UInt32>() { packet.PacketNumber }, 100);
-            AddFrame(ack);
-
+            if (packet.IsAckEliciting)
+            {
+                AckFrame ack = new AckFrame(new List<UInt32>() { packet.PacketNumber }, 100);
+                AddFrame(ack);
+            }
+            
             return ;
         }
 
