@@ -5,6 +5,9 @@ using System.Text;
 using System.Security.Cryptography;
 
 using quicsharp.Frames;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Collections.Generic;
 
 namespace quicsharp
 {
@@ -16,6 +19,10 @@ namespace quicsharp
         private QuicServerConnection serverConnection_;
 
         public bool Connected;
+
+        public static Mutex mutex = new Mutex();
+
+        public List<Frame> awaitingFrames = new List<Frame>();
 
         public QuicClient()
         {
@@ -49,11 +56,25 @@ namespace quicsharp
                 Console.WriteLine("Data received {0}:{1}.", server.Address, server.Port);
 
                 InitialPacket initPack = packet as InitialPacket;
-                Console.WriteLine($"I am client n {initPack.DCID} connected to server n {initPack.SCID}");
-                serverConnection_ = new QuicServerConnection(new UdpClient(), server, initPack.DCID, initPack.SCID);
+                Console.WriteLine($"I am client n {BitConverter.ToUInt32(initPack.DCID, 0)} connected to server n {BitConverter.ToUInt32(initPack.SCID, 0)}");
+                serverConnection_ = new QuicServerConnection(new UdpClient(), server, initPack.DCID, initPack.SCID, mutex);
                 Connected = true;
             }
+            Task.Run(() => Receive(server));
         }
+        private void Receive(IPEndPoint endpoint)
+        {
+            while (true)
+            {
+                Packet packet = Packet.Unpack(client_.Receive(ref endpoint));
+                serverConnection_.ReadPacket(packet);
+                mutex.WaitOne();
+                awaitingFrames.AddRange(packet.Frames);
+                mutex.ReleaseMutex();
+                Console.WriteLine($"Awaiting frames : {awaitingFrames.ToString()}");
+            }
+        }
+
 
         private int Send(byte[] payload)
         {
