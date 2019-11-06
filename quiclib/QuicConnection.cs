@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace quicsharp
 {
@@ -21,6 +22,10 @@ namespace quicsharp
 
         protected Packet currentPacket_;
 
+        // Background task to send packets again
+        private Task resendTask_;
+        private CancellationTokenSource resendToken_;
+
         // Debug variable. Set it from 0 to 100
         // Simulate packet loss by not sending the packet.
         static public int PacketLossPercentage = 0;
@@ -32,6 +37,13 @@ namespace quicsharp
             streams_ = new Dictionary<UInt64, QuicStream>();
             packetManager_ = new PacketManager(scid, dcid);
             lastStreamId_ = 0;
+            resendToken_ = new CancellationTokenSource();
+            resendTask_ = Task.Run(() => ResendNonAckPackets(), resendToken_.Token);
+        }
+
+        ~QuicConnection()
+        {
+            resendToken_.Cancel();
         }
 
         public QuicStream CreateStream(byte type)
@@ -45,48 +57,56 @@ namespace quicsharp
 
         public void ReadPacket(Packet packet)
         {
-            if (packetManager_.IsPacketOld(packet))
-                return;
-
-            packet.DecodeFrames();
-
-            foreach (Frame frame in packet.Frames)
+            // Process every new packet
+            if (!packetManager_.IsPacketOld(packet))
             {
-                if (frame is StreamFrame)
-                {
-                    StreamFrame sf = frame as StreamFrame;
-                    Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
-                }
-                if (frame is AckFrame)
-                {
-                    AckFrame af = frame as AckFrame;
-                    Console.WriteLine($"Received AckFrame");
-                    packetManager_.ProcessAckFrame(af);
+                packet.DecodeFrames();
 
-                    ResendNonAckPackets(af);
+                foreach (Frame frame in packet.Frames)
+                {
+                    if (frame is StreamFrame)
+                    {
+                        StreamFrame sf = frame as StreamFrame;
+                        Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
+                    }
+                    if (frame is AckFrame)
+                    {
+                        AckFrame af = frame as AckFrame;
+                        Console.WriteLine($"Received AckFrame");
+                        packetManager_.ProcessAckFrame(af);
+                    }
                 }
+
+                Console.WriteLine($"History length: {packetManager_.History.Count}");
+
+                // Store received PacketNumber for further implementation of acknowledgement procedure
+                Received.Add(packet.PacketNumber);
+            }
+            else
+            {
+                // The packet was sent again so we send another ack for it
+                packet.IsAckEliciting = true;
             }
 
-            Console.WriteLine($"History length: {packetManager_.History.Count}");
-
-            // Store received PacketNumber for further implementation of acknowledgement procedure
-            Received.Add(packet.PacketNumber);
-
             // Generate a new Ack Frame and send it directly
+            // Even if the packet is old, we send a new ack for this ; the ack packet may not have been received
             if (packet.IsAckEliciting)
             {
                 AckFrame ack = new AckFrame(new List<UInt32>() { packet.PacketNumber }, 100);
                 AddFrame(ack);
+                Console.WriteLine($"Ack for packet {packet.PacketNumber} sent");
             }
         }
 
-        public void ResendNonAckPackets(AckFrame af)
+        public void ResendNonAckPackets()
         {
             Random rnd = new Random();
-            // Send every packet not ack with a packet number lower than the highest packet number acknowledgded by the AckFrame
-            foreach (KeyValuePair<UInt32, Packet> packet in packetManager_.History)
+
+            while (!resendToken_.IsCancellationRequested)
             {
-                if (af.LargestAcknowledged.Value > packet.Key)
+                packetManager_.HistoryMutex.WaitOne();
+                // Send every packet not ack with a packet number lower than the highest packet number acknowledgded by the AckFrame
+                foreach (KeyValuePair<UInt32, Packet> packet in packetManager_.History)
                 {
                     byte[] data = packet.Value.Encode();
 
@@ -97,8 +117,10 @@ namespace quicsharp
                         socket_.Send(data, data.Length, endpoint_);
                     else
                         Console.WriteLine("Packet not sent");
-                    
                 }
+                packetManager_.HistoryMutex.ReleaseMutex();
+
+                Thread.Sleep(30);
             }
         }
 
@@ -111,7 +133,10 @@ namespace quicsharp
 
             int sent = 0;
             if (rnd.Next(100) > PacketLossPercentage)
+            {
+                Console.WriteLine("Packet initially not sent");
                 sent = socket_.Send(data, data.Length, endpoint_);
+            }
 
             // If some bytes were sent
             return sent;
