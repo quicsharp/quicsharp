@@ -116,5 +116,10 @@ namespace quicsharp
             byte[] b = initialPacket.Encode();
             server_.Send(b, b.Length, client);
         }
+
+        public ConnectionPool getConnectionPool()
+        {
+            return connectionPool_;
+        }
     }
 }

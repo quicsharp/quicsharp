@@ -23,8 +23,29 @@ namespace quicsharp.sample
             while (true)
             {
                 server.Receive();
+
+                foreach (QuicConnection connection in server.getConnectionPool().GetPool())
+                {
+                    // read and handle system messages
+                    Console.WriteLine("New loop iteration");
+                    try
+                    {
+                        byte[] newSystemmessage = connection.GetStreamOrCreate(0).Read();
+                        HandleSystemMessages(newSystemmessage);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+                
             }
 
+        }
+
+        static public void HandleSystemMessages(byte[] message)
+        {
+            Console.WriteLine("Received Message :  " + ASCIIEncoding.UTF8.GetString(message));
         }
     }
 }

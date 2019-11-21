@@ -83,12 +83,23 @@ namespace quicsharp
             {
                 packet.DecodeFrames();
 
+
                 foreach (Frame frame in packet.Frames)
                 {
                     if (frame is StreamFrame)
                     {
                         StreamFrame sf = frame as StreamFrame;
                         Logger.Write($"Received StreamFrame in packet number {packet.PacketNumber} with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
+                        QuicStream stream;
+                        try
+                        {
+                            stream = GetStream(sf._streamID.Value);
+                        }
+                        catch (ArgumentException e)
+                        {
+                            stream = CreateStream(0x00);
+                        }
+                        stream.AddFrameToRead(sf);
                     }
                     if (frame is AckFrame)
                     {
@@ -167,7 +178,6 @@ namespace quicsharp
             {
                 Logger.Write($"Packet number {packet.PacketNumber} initially not sent");
             }
-
             // If some bytes were sent
             return sent;
         }
@@ -232,6 +242,25 @@ namespace quicsharp
             if (!streams_.ContainsKey(id))
                 throw new ArgumentException($"The Quic Stream id {id} does not exist");
 
+            return streams_[id];
+        }
+
+        public List<QuicStream> GetStreams()
+        {
+            List<QuicStream> list = new List<QuicStream>();
+            foreach(KeyValuePair<ulong, QuicStream> item in streams_)
+            {
+                list.Add(item.Value);
+            }
+            return list;
+        }
+
+        public QuicStream GetStreamOrCreate(ulong id)
+        {
+            while (!streams_.ContainsKey(id))
+            {
+                CreateStream(0x00);
+            }
             return streams_[id];
         }
     }

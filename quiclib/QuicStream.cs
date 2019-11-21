@@ -12,6 +12,7 @@ namespace quicsharp
     {
         private QuicConnection connection_;
         private SortedList<UInt64, byte[]> _data = new SortedList<ulong, byte[]>();
+        private Queue<StreamFrame> _toRead = new Queue<StreamFrame>();
         private UInt64 maximumStreamData;
         private UInt64 currentTransferRate;
 
@@ -63,6 +64,17 @@ namespace quicsharp
             StreamFrame frame = new StreamFrame(StreamId, 0, data, true, false);
 
             connection_.AddFrame(frame);
+        }
+
+        public void AddFrameToRead(StreamFrame sf)
+        {
+            _toRead.Enqueue(sf);
+        }
+
+        public byte[] Read()
+        {
+            StreamFrame frame = _toRead.Dequeue();
+            return frame.Data;
         }
     }
 }
