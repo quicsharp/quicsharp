@@ -22,8 +22,6 @@ namespace quicsharp.sample
 
             while (true)
             {
-                server.Receive();
-
                 foreach (QuicConnection connection in server.getConnectionPool().GetPool())
                 {
                     // read and handle system messages

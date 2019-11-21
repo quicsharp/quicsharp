@@ -4,6 +4,8 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 
 using quicsharp.Frames;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace quicsharp
 {
@@ -21,6 +23,10 @@ namespace quicsharp
         public int Port { get; private set; }
 
         private ConnectionPool connectionPool_;
+
+        private Task receiveTask_;
+        private CancellationTokenSource receiveToken_;
+
 
         /// <summary>
         /// Create a server on a specific port
@@ -42,6 +48,10 @@ namespace quicsharp
             started_ = true;
             id_ = BitConverter.GetBytes(idCounter_);
             idCounter_++;
+
+            // Background task to receive packets from the remote server
+            receiveToken_ = new CancellationTokenSource();
+            receiveTask_ = Task.Run(() => Receive(), receiveToken_.Token);
         }
 
         /// <summary>
@@ -50,6 +60,7 @@ namespace quicsharp
         public void Close()
         {
             server_.Close();
+            receiveToken_.Cancel();
         }
 
         /// <summary>
@@ -62,36 +73,40 @@ namespace quicsharp
 
             IPEndPoint client = null;
 
-            try
+            while (!receiveToken_.IsCancellationRequested)
             {
-                // Listening
-                Packet packet = Packet.Unpack(server_.Receive(ref client));
 
-                if (packet is InitialPacket)
+                try
                 {
-                    HandleInitialPacket(packet as InitialPacket, client);
-                }
-                else
-                {
-                    packet = packet as LongHeaderPacket;
-                    // The available connection pool for new client connections currently ranges from 4096 to 2**24
-                    if ((packet as LongHeaderPacket).SCIDLength > 24)
-                        throw new IndexOutOfRangeException("SCID should only be encoded on 3 bytes so far");
-                    uint scid = BitConverter.ToUInt32((packet as LongHeaderPacket).SCID, 0);
+                    // Listening
+                    Packet packet = Packet.Unpack(server_.Receive(ref client));
 
-                    QuicConnection connection = connectionPool_.Find(scid);
-                    Logger.Write($"Received Packet from connectionID {scid}");
-                    connection.ReadPacket(packet);
+                    if (packet is InitialPacket)
+                    {
+                        HandleInitialPacket(packet as InitialPacket, client);
+                    }
+                    else
+                    {
+                        packet = packet as LongHeaderPacket;
+                        // The available connection pool for new client connections currently ranges from 4096 to 2**24
+                        if ((packet as LongHeaderPacket).SCIDLength > 24)
+                            throw new IndexOutOfRangeException("SCID should only be encoded on 3 bytes so far");
+                        uint scid = BitConverter.ToUInt32((packet as LongHeaderPacket).SCID, 0);
+
+                        QuicConnection connection = connectionPool_.Find(scid);
+                        Logger.Write($"Received Packet from connectionID {scid}");
+                        connection.ReadPacket(packet);
+                    }
                 }
-            }
-            catch (CorruptedPacketException e)
-            {
-                Logger.Write($"Received a corrupted QUIC packet {e.Message}");
-            }
-            catch (Exception e)
-            {
-                Logger.Write(e.Source);
-                throw e;
+                catch (CorruptedPacketException e)
+                {
+                    Logger.Write($"Received a corrupted QUIC packet {e.Message}");
+                }
+                catch (Exception e)
+                {
+                    Logger.Write(e.Source);
+                    throw e;
+                }
             }
         }
 
