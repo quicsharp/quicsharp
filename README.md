@@ -13,7 +13,7 @@ It is an experimental project, and the goal is to implement QUIC over UDP as a C
 * Packet factory that implements all the Long Header Packet types and the Short Header Packet type. They should match the draft.
 * A few frames were implemented (Padding, Ack, Stream). They can be encoded and decoded inside every type of packet.
 * Streams are implemented and can be used like the TCP Streams in C#. However, the stream type is not implemented (it is always bidirectionnal).
-* The packets are acknowledged according to the draft. They are acknowledged more than necessary. However we don't send retry packet if a packet is lost.
+* The packets are acknowledged according to the draft. They are acknowledged more than necessary. We resend lost packets.
 * TLS is not implemented.
 
 ## How to use
