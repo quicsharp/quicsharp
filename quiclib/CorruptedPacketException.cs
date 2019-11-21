@@ -2,6 +2,9 @@
 
 namespace quicsharp
 {
+    /// <summary>
+    /// Custom exception to handle correupted quic packets
+    /// </summary>
     [Serializable]
     public class CorruptedPacketException : Exception
     {

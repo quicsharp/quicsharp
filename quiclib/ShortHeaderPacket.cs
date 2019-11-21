@@ -30,7 +30,7 @@ namespace quicsharp
         public override int Decode(byte[] data)
         {
             if (data.Length < packetHeaderSize_)
-                throw new AccessViolationException("QUIC packet too small for a ShortHeaderPacket");
+                throw new CorruptedPacketException("QUIC packet too small for a ShortHeaderPacket");
 
             /* 
                +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+

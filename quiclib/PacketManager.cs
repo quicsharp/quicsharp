@@ -8,6 +8,10 @@ using quicsharp.Frames;
 
 namespace quicsharp
 {
+    /// <summary>
+    /// Used to manage the received packets and the sent packets.
+    /// Store the packets that were sent but not ack as well as the packet numbers already received not to process them twice.
+    /// </summary>
     public class PacketManager
     {
         // Section 12.3
@@ -18,6 +22,9 @@ namespace quicsharp
         // Used to prevent race exception when sending packet again
         public Mutex HistoryMutex = new Mutex();
         public Dictionary<UInt32, Packet> History = new Dictionary<UInt32, Packet>();
+        /// <summary>
+        /// Received packets numbers. Used not to process the same packet twice. 
+        /// </summary>
         private Dictionary<UInt32, bool> received_ = new Dictionary<UInt32, bool>();
 
         public PacketManager(byte[] scid, byte[] dcid)
@@ -26,6 +33,10 @@ namespace quicsharp
             DCID = dcid;
         }
 
+        /// <summary>
+        /// Register a packet and set its packet number, DCID and SCID to prepare it to be sent.
+        /// </summary>
+        /// <param name="packet">The packet to register</param>
         public void PreparePacket(Packet packet)
         {
             if (packet is LongHeaderPacket)
@@ -36,6 +47,7 @@ namespace quicsharp
                 lhp.SCID = SCID;
                 lhp.SCIDLength = (UInt32)SCID.Length;
             }
+            // The retry packets do not have a packet number
             if (!(packet is RetryPacket))
             {
                 packet.PacketNumber = ++packetNumber_;
@@ -43,7 +55,11 @@ namespace quicsharp
             }
         }
 
-        // Process a ack frame to remove packets that were acknowledged from the history
+        /// <summary>
+        /// Process a ack frame to remove packets that were acknowledged from the history
+        /// </summary>
+        /// <param name="frame">The AckFrame to process</param>
+        /// <returns>Number of packet ack</returns>
         public UInt32 ProcessAckFrame(AckFrame frame)
         {
             UInt32 ack = 0;
@@ -53,6 +69,7 @@ namespace quicsharp
             for (UInt32 i = (UInt32)frame.LargestAcknowledged.Value; i > endOfRange; i--)
             {
                 History.Remove(i);
+                ack++;
             }
 
             foreach ((VariableLengthInteger, VariableLengthInteger) tuple in frame.AckRanges)
@@ -62,6 +79,7 @@ namespace quicsharp
                 {
                     History.Remove(endOfRange);
                     endOfRange--;
+                    ack++;
                 }
             }
             HistoryMutex.ReleaseMutex();
@@ -84,6 +102,11 @@ namespace quicsharp
             return false;
         }
 
+        /// <summary>
+        /// Register the packet in history to be able to send it again if it was lost or corrupted.
+        /// </summary>
+        /// <param name="p">The packet to register</param>
+        /// <param name="packetNumber">Its packet number</param>
         public void Register(Packet p, UInt32 packetNumber)
         {
             if (p.IsAckEliciting)

@@ -6,17 +6,36 @@ using quicsharp.Frames;
 
 namespace quicsharp
 {
+    /// <summary>
+    /// FrameParser reads a payload and decode the frames inside it
+    /// </summary>
     class FrameParser
     {
+        /// <summary>
+        /// The payload containing the frames
+        /// </summary>
         private byte[] content_;
+
+        /// <summary>
+        /// An ack eliciting packet is a packet that contains at least one frame that is not a PingFrame or an AckFrame
+        /// Section 13
+        /// </summary>
         public bool IsAckEliciting = false;
 
+        /// <summary>
+        /// Creates the parser and initiate the payload to decode
+        /// </summary>
+        /// <param name="content">The content of the payload that contains the frames</param>
         public FrameParser(byte[] content)
         {
             content_ = new byte[content.Length];
             Array.Copy(content, content_, content.Length);
         }
 
+        /// <summary>
+        /// Decode the frames from the payload
+        /// </summary>
+        /// <returns>The list of the decoded frames</returns>
         public List<Frame> GetFrames()
         {
             if (content_.Length < 1)

@@ -5,6 +5,9 @@ using System.Text;
 
 namespace quicsharp
 {
+    /// <summary>
+    /// A factory used to create the correct packet type according to the received payload.
+    /// </summary>
     abstract public class Packet
     {
         public byte[] Payload;
@@ -22,12 +25,12 @@ namespace quicsharp
         /// Decode the received payload
         /// </summary>
         /// <param name="data">The raw packet received</param>
-        /// <returns></returns>
+        /// <returns>The decoded packet</returns>
         public static Packet Unpack(byte[] data)
         {
             if (data.Length < packetHeaderSize_)
             {
-                throw new ArgumentException("Corrupted packet");
+                throw new CorruptedPacketException("Wrong header size");
             }
             Packet p;
 
@@ -37,7 +40,7 @@ namespace quicsharp
                 // Short Header Packet
                 p = new ShortHeaderPacket();
                 if (!BitUtils.ReadBit(1, data))
-                    throw new ArgumentException("Corrupted packet");
+                    throw new CorruptedPacketException("Wrong second bit when decoding a ShortHeaderPacket");
 
                 p.Decode(data);
             }
@@ -46,7 +49,7 @@ namespace quicsharp
             {
                 // Long Header Packet
                 if (!BitUtils.ReadBit(1, data))
-                    throw new ArgumentException("Corrupted packet");
+                    throw new CorruptedPacketException("Undefined packet header");
                 // The two next bits describe the type of the Long Header Packet
                 switch (BitUtils.ReadNBits(2, data, 2))
                 {
@@ -116,18 +119,12 @@ namespace quicsharp
         /// </summary>
         /// <param name="data">The raw packet</param>
         /// <returns>Number of bits read</returns>
-        public virtual int Decode(byte[] data)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract int Decode(byte[] data);
 
         /// <summary>
         /// Encode the packet to a byte array.
         /// </summary>
         /// <returns>The raw packet</returns>
-        public virtual byte[] Encode()
-        {
-            throw new NotImplementedException();
-        }
+        public abstract byte[] Encode();
     }
 }

@@ -7,6 +7,10 @@ using quicsharp.Frames;
 
 namespace quicsharp
 {
+    /// <summary>
+    /// Used to start a connection between a client and a server.
+    /// Section 17.2.2
+    /// </summary>
     public sealed class InitialPacket : LongHeaderPacket
     {
         public uint ReservedBits = 0;
@@ -63,9 +67,10 @@ namespace quicsharp
         /// <returns>Number of bits read</returns>
         public override int Decode(byte[] data)
         {
+            // Decode the Long Header
             int cursor = base.Decode(data);
             if (PacketType != 0)
-                throw new ArgumentException("Wrong packet type");
+                throw new CorruptedPacketException("Wrong packet type");
             ReservedBits = BitUtils.ReadNBits(reservedBitsIndex_, data, 2);
 
             PacketNumberLength = BitUtils.ReadNBits(packetNumberLengthBitsIndex_, data, 2) + 1;
