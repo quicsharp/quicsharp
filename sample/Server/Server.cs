@@ -25,7 +25,6 @@ namespace quicsharp.sample
                 foreach (QuicConnection connection in server.getConnectionPool().GetPool())
                 {
                     // read and handle system messages
-                    Console.WriteLine("New loop iteration");
                     try
                     {
                         byte[] newSystemmessage = connection.GetStreamOrCreate(0).Read();
@@ -36,7 +35,7 @@ namespace quicsharp.sample
                         Console.WriteLine(e.Message);
                     }
                 }
-                
+
             }
 
         }

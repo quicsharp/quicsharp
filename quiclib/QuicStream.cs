@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Threading;
 using quicsharp.Frames;
 
 namespace quicsharp
@@ -17,6 +17,8 @@ namespace quicsharp
         private UInt64 currentTransferRate;
 
         private VariableLengthInteger streamId_ = new VariableLengthInteger(0);
+
+        private ManualResetEvent mre = new ManualResetEvent(false);
         public UInt64 StreamId
         {
             get
@@ -69,11 +71,17 @@ namespace quicsharp
         public void AddFrameToRead(StreamFrame sf)
         {
             _toRead.Enqueue(sf);
+            mre.Set();
         }
 
         public byte[] Read()
         {
+            mre.WaitOne();
             StreamFrame frame = _toRead.Dequeue();
+            if (_toRead.Count == 0)
+            {
+                mre.Reset();
+            }
             return frame.Data;
         }
     }

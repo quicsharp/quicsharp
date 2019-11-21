@@ -65,9 +65,9 @@ namespace quicsharp
         /// <returns>The new stream</returns>
         public QuicStream CreateStream(byte type)
         {
-            lastStreamId_++;
             QuicStream stream = new QuicStream(this, new VariableLengthInteger(lastStreamId_), type);
             streams_.Add(lastStreamId_, stream);
+            lastStreamId_++;
 
             return stream;
         }
