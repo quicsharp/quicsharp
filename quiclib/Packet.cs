@@ -10,11 +10,14 @@ namespace quicsharp
     /// </summary>
     abstract public class Packet
     {
+        // Raw payload of the packet
         public byte[] Payload;
-        public UInt32 ClientId;
+        // List of frames inside the payload
         public List<Frame> Frames { get; protected set; } = new List<Frame>();
 
+        // Packet number (excpet for RetryPacket)
         public UInt32 PacketNumber = 0;
+        // If it has a frame different from PingFrame or AckFrame
         public bool IsAckEliciting = false;
 
         // In bytes
