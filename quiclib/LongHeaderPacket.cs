@@ -4,7 +4,10 @@ using System.Text;
 
 namespace quicsharp
 {
-    // QUIC IETF draft 17.1
+    /// <summary>
+    /// Abstract class to define the different type of LongHeaderPackets (HandshakePacket, InitialPacket, RetryPacket, RTTPacket)
+    /// Section 17.2
+    /// </summary>
     public abstract class LongHeaderPacket : Packet
     {
         /* 
@@ -22,6 +25,7 @@ namespace quicsharp
            |                 Source Connection ID (0..160)               ...
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
            |           Payload (depending on the type of the packet)     ...
+           +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
         protected new static int packetHeaderSize_ = 10;
         protected static int maxCID_ = 20;
@@ -41,7 +45,7 @@ namespace quicsharp
         }
 
         /// <summary>
-        /// Decode the raw packet.
+        /// Decode the long header of the raw packet.
         /// </summary>
         /// <param name="data">The raw packet</param>
         /// <returns>Number of bits read</returns>

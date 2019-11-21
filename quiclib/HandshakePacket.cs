@@ -4,6 +4,10 @@ using System.Text;
 
 namespace quicsharp
 {
+    /// <summary>
+    /// Packet used to carry acknowledgments and cryptographic handshake messages from the server and client
+    /// Section 17.2.4
+    /// </summary>
     public sealed class HandshakePacket : LongHeaderPacket
     {
         public uint ReservedBits = 0;
@@ -36,11 +40,16 @@ namespace quicsharp
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
 
+        /// <summary>
+        /// Decode the raw packet to a HandshakePacket.
+        /// </summary>
+        /// <param name="data">The raw packet</param>
+        /// <returns>Number of bits read</returns>
         public override int Decode(byte[] data)
         {
             int cursor = base.Decode(data);
             if (PacketType != 2)
-                throw new ArgumentException("Wrong packet type");
+                throw new CorruptedPacketException("Wrong packet type");
             ReservedBits = BitUtils.ReadNBits(reservedBitsIndex_, data, 2);
 
             PacketNumberLength = BitUtils.ReadNBits(packetNumberLengthBitsIndex_, data, 2) + 1;
@@ -60,6 +69,10 @@ namespace quicsharp
             return cursor;
         }
 
+        /// <summary>
+        /// Encode the HandshakePacket to a byte array. Encode the Header then the payload with all the frames.
+        /// </summary>
+        /// <returns>The raw packet</returns>
         public override byte[] Encode()
         {
             List<byte> lpack = new List<byte>(base.Encode());

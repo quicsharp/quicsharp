@@ -8,7 +8,7 @@ using quicsharp.Frames;
 namespace quicsharp
 {
     /// <summary>
-    /// Main class for a Quic Server.
+    /// Main class of the API used like the TCPListener. Can start and manage a QUIC connections between here and different clients.
     /// </summary>
     public class QuicListener
     {
@@ -22,6 +22,10 @@ namespace quicsharp
 
         private ConnectionPool connectionPool_;
 
+        /// <summary>
+        /// Create a server on a specific port
+        /// </summary>
+        /// <param name="port">The port to listen to</param>
         public QuicListener(int port)
         {
             started_ = false;
@@ -29,7 +33,9 @@ namespace quicsharp
             connectionPool_ = new ConnectionPool();
         }
 
-        // Starts the listener
+        /// <summary>
+        /// Start the listener
+        /// </summary>
         public void Start()
         {
             server_ = new UdpClient(Port);
@@ -38,12 +44,17 @@ namespace quicsharp
             idCounter_++;
         }
 
-        // Close the listener
+        /// <summary>
+        /// Close the listener
+        /// </summary>
         public void Close()
         {
             server_.Close();
         }
 
+        /// <summary>
+        /// Receive and manage the different packet reveice from all the client connections.
+        /// </summary>
         public void Receive()
         {
             if (!started_)
@@ -84,6 +95,11 @@ namespace quicsharp
             }
         }
 
+        /// <summary>
+        /// Handle an InitialPacket to create a new QuicClientConnection related to this packet.
+        /// </summary>
+        /// <param name="packet">The packet received</param>
+        /// <param name="client">The client that sent the packet</param>
         private void HandleInitialPacket(InitialPacket packet, IPEndPoint client)
         {
             InitialPacket initPack = packet as InitialPacket;

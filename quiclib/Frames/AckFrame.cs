@@ -4,7 +4,10 @@ using System.Text;
 
 namespace quicsharp.Frames
 {
-    // Section 19.3
+    /// <summary>
+    /// Frame to handle the ack process
+    /// Section 19.3
+    /// </summary>
     public class AckFrame : Frame
     {
         public override byte Type => 0x02;
@@ -38,6 +41,11 @@ namespace quicsharp.Frames
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         */
 
+        /// <summary>
+        /// Create a new ack frame from the lsit of the received packets.
+        /// </summary>
+        /// <param name="receivedPackets">The lsit of the received packets</param>
+        /// <param name="delay">Delay of the ack frame (TODO: not used here)</param>
         public AckFrame(List<UInt32> receivedPackets, UInt64 delay)
         {
             if (receivedPackets.Count == 0)
@@ -80,6 +88,12 @@ namespace quicsharp.Frames
 
         }
 
+        /// <summary>
+        /// Decode an AckFrame from a raw byte array
+        /// </summary>
+        /// <param name="content">The raw byte array</param>
+        /// <param name="begin">The bit index of the byte array where the AckFrame is located</param>
+        /// <returns>The number of bits read</returns>
         public override int Decode(byte[] content, int begin)
         {
             if (content.Length < (frameLengthBitsMini + begin) / 8)
@@ -109,6 +123,10 @@ namespace quicsharp.Frames
             return read;
         }
 
+        /// <summary>
+        /// Encode an AckFrame to a raw byte array
+        /// </summary>
+        /// <returns>The encoded frame</returns>
         public override byte[] Encode()
         {
             List<byte> content = new List<byte>();

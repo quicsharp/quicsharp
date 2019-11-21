@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace quicsharp
 {
+    /// <summary>
+    /// Used to handle information about a connection endpoint.
+    /// Handle the packets sent and received by a specific endpoint.
+    /// </summary>
     public class QuicConnection
     {
         private IPEndPoint endpoint_;
@@ -30,6 +34,14 @@ namespace quicsharp
         // Simulate packet loss by not sending the packet.
         static public int PacketLossPercentage = 0;
 
+        /// <summary>
+        /// Create the QUIC connection information. Use the QuicClientConnection or QuicServerConnection
+        /// to correctly initiate the Source ID and the Destination ID.
+        /// </summary>
+        /// <param name="socket">The related UDP socket</param>
+        /// <param name="endPoint">The endpoint to save</param>
+        /// <param name="scid">Source Connection ID</param>
+        /// <param name="dcid">Destination Connection ID</param>
         public QuicConnection(UdpClient socket, IPEndPoint endPoint, byte[] scid, byte[] dcid)
         {
             socket_ = socket;
@@ -46,6 +58,11 @@ namespace quicsharp
             resendToken_.Cancel();
         }
 
+        /// <summary>
+        /// Creata a new stream (TODO: streams are always bidirectionnal for now)
+        /// </summary>
+        /// <param name="type">Type of the stream (unidirectional, bidirectional)</param>
+        /// <returns>The new stream</returns>
         public QuicStream CreateStream(byte type)
         {
             lastStreamId_++;
@@ -55,6 +72,10 @@ namespace quicsharp
             return stream;
         }
 
+        /// <summary>
+        /// Read a received packet and process its frames.
+        /// </summary>
+        /// <param name="packet">The received packet</param>
         public void ReadPacket(Packet packet)
         {
             // Process every new packet
@@ -96,6 +117,9 @@ namespace quicsharp
             }
         }
 
+        /// <summary>
+        /// Background task to resend packets that have not been ack yet.
+        /// </summary>
         public void ResendNonAckPackets()
         {
             Random rnd = new Random();
@@ -122,6 +146,11 @@ namespace quicsharp
             }
         }
 
+        /// <summary>
+        /// Send a packet to this endpoint
+        /// </summary>
+        /// <param name="packet">The packet to send</param>
+        /// <returns>Number of byte sent</returns>
         public int SendPacket(Packet packet)
         {
             Random rnd = new Random();
@@ -143,11 +172,11 @@ namespace quicsharp
             return sent;
         }
 
-        public IPEndPoint LastTransferEndpoint()
-        {
-            return endpoint_;
-        }
-
+        /// <summary>
+        /// Set the Destination Connection ID
+        /// </summary>
+        /// <param name="dcid">New Destination Connection ID</param>
+        /// <returns>True if it was a success</returns>
         public bool SetDCID(byte[] dcid)
         {
             if (dcid != null || dcid.Length == 0)
@@ -158,8 +187,11 @@ namespace quicsharp
             return true;
         }
 
-        // Add frame to the current packet. This current packet will be sent when the QuicConnection decides so.
-        // For the moment the current packet is always a ShortHeaderPacket, and it is sent after one frame is added.
+        /// <summary>
+        /// Add frame to the current packet. This current packet will be sent when the QuicConnection decides so.
+        /// For the moment the current packet is always a ShortHeaderPacket, and it is sent after one frame is added.
+        /// </summary>
+        /// <param name="frame">The frame to add</param>
         public void AddFrame(Frame frame)
         {
             if (socket_ == null || endpoint_ == null)
@@ -175,6 +207,10 @@ namespace quicsharp
             SendCurrentPacket();
         }
 
+        /// <summary>
+        /// Send the packet in construction
+        /// </summary>
+        /// <returns>Number of byte sent</returns>
         public int SendCurrentPacket()
         {
             if (currentPacket_ == null)
@@ -186,6 +222,11 @@ namespace quicsharp
             return sentBytes;
         }
 
+        /// <summary>
+        /// Get a specific stream
+        /// </summary>
+        /// <param name="id">The id of the stream wanted</param>
+        /// <returns>The wanted stream</returns>
         public QuicStream GetStream(UInt64 id)
         {
             if (!streams_.ContainsKey(id))

@@ -11,6 +11,9 @@ using System.Collections.Generic;
 
 namespace quicsharp
 {
+    /// <summary>
+    /// Main class of the API used like the TCPClient. Can start and manage a QUIC connection.
+    /// </summary>
     public class QuicClient
     {
         private UdpClient client_;
@@ -36,7 +39,11 @@ namespace quicsharp
             Connected = false;
         }
 
-        // Connect to a remote server.
+        /// <summary>
+        /// Connect to a remote server.
+        /// </summary>
+        /// <param name="ip">Ip of the remote server</param>
+        /// <param name="port">Port of the remote server</param>
         public void Connect(string ip, int port)
         {
             // Create random DCID and SCID
@@ -46,6 +53,7 @@ namespace quicsharp
             rng.GetBytes(DCID);
             rng.GetBytes(SCID);
 
+            // Create and send an InitialPacket to open a connection with the remote server
             InitialPacket initialPacket = new InitialPacket(DCID, SCID, packetNumber_++);
 
             byte[] byteInitialPacket = initialPacket.Encode();
@@ -54,6 +62,7 @@ namespace quicsharp
             IPEndPoint server = null;
             Packet packet = Packet.Unpack(client_.Receive(ref server));
 
+            // Start the connection with an InitialPacket
             if (packet.GetType() == typeof(InitialPacket))
             {
                 Logger.Write("New initial packet created (Client Side)");
@@ -65,9 +74,16 @@ namespace quicsharp
                 serverConnection_ = new QuicServerConnection(new UdpClient(), server, initPack.DCID, initPack.SCID, mutex);
                 Connected = true;
             }
+
+            // Background task to receive packets from the remote server
             receiveToken_ = new CancellationTokenSource();
             receiveTask_ = Task.Run(() => Receive(server), receiveToken_.Token);
         }
+
+        /// <summary>
+        /// Called in background to process the packets received through the QUIC connection
+        /// </summary>
+        /// <param name="endpoint">QUIC endpoint</param>
         private void Receive(IPEndPoint endpoint)
         {
             while (!receiveToken_.IsCancellationRequested)
@@ -80,24 +96,9 @@ namespace quicsharp
             }
         }
 
-
-        private int Send(byte[] payload)
-        {
-            if (!Connected)
-                return -1;
-            packetNumber_++;
-
-            ShortHeaderPacket packet = new ShortHeaderPacket();
-            packet.AddFrame(new DebugFrame { Message = payload.ToString() });
-
-            return serverConnection_.SendPacket(packet);
-        }
-
-        private int Send(Packet packet)
-        {
-            return serverConnection_.SendPacket(packet);
-        }
-
+        /// <summary>
+        /// Close a QUIC connection
+        /// </summary>
         public void Close()
         {
             client_.Close();
@@ -105,8 +106,11 @@ namespace quicsharp
             receiveToken_.Cancel();
         }
 
-        // Create a Stream
-        // TODO: Specifying if the stream is bidirectional or unidirectional
+        /// <summary>
+        /// Create a Stream
+        /// TODO: Specifying if the stream is bidirectional or unidirectional
+        /// </summary>
+        /// <returns>The stream created</returns>
         public QuicStream CreateStream()
         {
             // TODO: choose a stream type

@@ -4,6 +4,10 @@ using System.Text;
 
 namespace quicsharp
 {
+    /// <summary>
+    /// Utils methods used to read and write bits inside a byte array
+    /// Mostly used the write the headers
+    /// </summary>
     public static class BitUtils
     {
         /// <summary>

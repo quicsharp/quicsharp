@@ -4,10 +4,12 @@ using System.Text;
 
 namespace quicsharp.Frames
 {
+    /// <summary>
+    /// Frame use to send message on a specific stream
+    /// Section 19.8
+    /// </summary>
     public class StreamFrame : Frame
     {
-        // Section 19.8
-
         private byte _minType => 0x08;
         private byte _maxType => 0x0f;
 
@@ -53,6 +55,12 @@ namespace quicsharp.Frames
             Data = data;
         }
 
+        /// <summary>
+        /// Decode a StreamFrame from a raw byte array
+        /// </summary>
+        /// <param name="content">The raw byte array</param>
+        /// <param name="begin">The bit index of the byte array where the AckFrame is located</param>
+        /// <returns>The number of bits read</returns>
         public override int Decode(byte[] content, int begin)
         {
             if (content.Length < 1 + begin)
@@ -92,6 +100,10 @@ namespace quicsharp.Frames
             return (cursor + Convert.ToInt32(_length.Value) - begin) * 8;
         }
 
+        /// <summary>
+        /// Encode a StreamFrame to a raw byte array
+        /// </summary>
+        /// <returns>The encoded frame</returns>
         public override byte[] Encode()
         {
             List<byte> content = new List<byte>();

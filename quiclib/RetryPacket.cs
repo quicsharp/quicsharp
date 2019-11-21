@@ -4,6 +4,10 @@ using System.Text;
 
 namespace quicsharp
 {
+    /// <summary>
+    /// Used by a server that wishes to perform a retry
+    /// Section 17.2.5
+    /// </summary>
     public sealed class RetryPacket : LongHeaderPacket
     {
         public byte[] RetryToken;
@@ -33,7 +37,7 @@ namespace quicsharp
          */
 
         /// <summary>
-        /// Decode the raw packet.
+        /// Decode the raw packet to a RetryPacket.
         /// </summary>
         /// <param name="data">The raw packet</param>
         /// <returns>Number of bits read</returns>
@@ -41,7 +45,7 @@ namespace quicsharp
         {
             int cursor = base.Decode(data);
             if (PacketType != 3)
-                throw new ArgumentException("Wrong packet type");
+                throw new CorruptedPacketException("Wrong packet type");
 
             // Read ODCID Len
             ODCIDLength = BitUtils.ReadByte(cursor, data);
@@ -65,7 +69,7 @@ namespace quicsharp
         }
 
         /// <summary>
-        /// Encode the packet to a byte array. Encode the Header then the payload with all the frames.
+        /// Encode the RetryPacket to a byte array. Encode the Header then the payload with all the frames.
         /// </summary>
         /// <returns>The raw packet</returns>
         public override byte[] Encode()
