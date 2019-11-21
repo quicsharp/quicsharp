@@ -25,7 +25,7 @@ namespace quicsharp
             // TODO : give correct ID ; Does not work when removing connection
             _pool.Add(connectionId_, connection);
 
-            Console.WriteLine("Connection added id: {0}", connectionId_);
+            Logger.Write($"Connection added to the ConnectionPool: id = {connectionId_}");
             connectionId_++;
 
             return BitConverter.GetBytes(connectionId_ - 1);
@@ -36,7 +36,7 @@ namespace quicsharp
             if (_pool.ContainsKey(id))
             {
                 _pool.Remove(id);
-                Console.WriteLine("Connection removed id: {0}", id);
+                Logger.Write($"Connection removed from the ConnectionPool: id = {id}");
             }
         }
 
