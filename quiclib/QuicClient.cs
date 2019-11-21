@@ -56,12 +56,12 @@ namespace quicsharp
 
             if (packet.GetType() == typeof(InitialPacket))
             {
-                Console.WriteLine("New initial packet");
+                Logger.Write("New initial packet created (Client Side)");
                 packet.DecodeFrames();
-                Console.WriteLine("Data received {0}:{1}.", server.Address, server.Port);
+                Logger.Write($"Data received from server {server.Address}:{server.Port}");
 
                 InitialPacket initPack = packet as InitialPacket;
-                Console.WriteLine($"I am client n {BitConverter.ToUInt32(initPack.DCID, 0)} connected to server n {BitConverter.ToUInt32(initPack.SCID, 0)}");
+                Logger.Write($"Connection started. I am client n {BitConverter.ToUInt32(initPack.DCID, 0)} connected to server n {BitConverter.ToUInt32(initPack.SCID, 0)}");
                 serverConnection_ = new QuicServerConnection(new UdpClient(), server, initPack.DCID, initPack.SCID, mutex);
                 Connected = true;
             }

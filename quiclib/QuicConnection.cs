@@ -67,17 +67,15 @@ namespace quicsharp
                     if (frame is StreamFrame)
                     {
                         StreamFrame sf = frame as StreamFrame;
-                        Console.WriteLine($"Received StreamFrame with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
+                        Logger.Write($"Received StreamFrame in packet number {packet.PacketNumber} with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
                     }
                     if (frame is AckFrame)
                     {
                         AckFrame af = frame as AckFrame;
-                        Console.WriteLine($"Received AckFrame");
+                        Logger.Write($"Received AckFrame in packet number {packet.PacketNumber}");
                         packetManager_.ProcessAckFrame(af);
                     }
                 }
-
-                Console.WriteLine($"History length: {packetManager_.History.Count}");
 
                 // Store received PacketNumber for further implementation of acknowledgement procedure
                 Received.Add(packet.PacketNumber);
@@ -94,7 +92,7 @@ namespace quicsharp
             {
                 AckFrame ack = new AckFrame(new List<UInt32>() { packet.PacketNumber }, 100);
                 AddFrame(ack);
-                Console.WriteLine($"Ack for packet {packet.PacketNumber} sent");
+                Logger.Write($"Ack the received packet number {packet.PacketNumber}");
             }
         }
 
@@ -110,13 +108,13 @@ namespace quicsharp
                 {
                     byte[] data = packet.Value.Encode();
 
-                    Console.WriteLine($"Packet number {packet.Key} sent again");
+                    Logger.Write($"Packet number {packet.Key} sent again");
 
                     // Simulate packet loss
                     if (rnd.Next(100) > PacketLossPercentage)
                         socket_.Send(data, data.Length, endpoint_);
                     else
-                        Console.WriteLine("Packet not sent");
+                        Logger.Write($"Packet number {packet.Key} not sent");
                 }
                 packetManager_.HistoryMutex.ReleaseMutex();
 
@@ -134,8 +132,11 @@ namespace quicsharp
             int sent = 0;
             if (rnd.Next(100) > PacketLossPercentage)
             {
-                Console.WriteLine("Packet initially not sent");
                 sent = socket_.Send(data, data.Length, endpoint_);
+            }
+            else
+            {
+                Logger.Write($"Packet number {packet.PacketNumber} initially not sent");
             }
 
             // If some bytes were sent
