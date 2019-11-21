@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
+using System.Threading;
 
 using quicsharp.Frames;
 
@@ -14,8 +15,10 @@ namespace quicsharp
         public byte[] SCID = new byte[] { };
         public byte[] DCID = new byte[] { };
 
+        // Used to prevent race exception when sending packet again
+        public Mutex HistoryMutex = new Mutex();
         public Dictionary<UInt32, Packet> History = new Dictionary<UInt32, Packet>();
-        public List<UInt32> Received = new List<UInt32>();
+        private Dictionary<UInt32, bool> received_ = new Dictionary<UInt32, bool>();
 
         public PacketManager(byte[] scid, byte[] dcid)
         {
@@ -45,6 +48,7 @@ namespace quicsharp
         {
             UInt32 ack = 0;
             UInt32 endOfRange = (UInt32)(frame.LargestAcknowledged.Value - frame.FirstAckRange.Value);
+            HistoryMutex.WaitOne();
 
             for (UInt32 i = (UInt32)frame.LargestAcknowledged.Value; i > endOfRange; i--)
             {
@@ -60,13 +64,34 @@ namespace quicsharp
                     endOfRange--;
                 }
             }
+            HistoryMutex.ReleaseMutex();
 
             return ack;
         }
 
+        /// <summary>
+        /// Return true if the packet was already received at least once.
+        /// </summary>
+        public bool IsPacketOld(Packet packet)
+        {
+            if (packet is RetryPacket)
+                return true;
+
+            if (received_.ContainsKey(packet.PacketNumber))
+                return true;
+
+            received_.Add(packet.PacketNumber, true);
+            return false;
+        }
+
         public void Register(Packet p, UInt32 packetNumber)
         {
-            History.Add(packetNumber, p);
+            if (p.IsAckEliciting)
+            {
+                HistoryMutex.WaitOne();
+                History.Add(packetNumber, p);
+                HistoryMutex.ReleaseMutex();
+            }
         }
     }
 }

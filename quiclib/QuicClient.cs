@@ -3,10 +3,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Security.Cryptography;
+using System.Threading;
 
 using quicsharp.Frames;
 using System.Threading.Tasks;
-using System.Threading;
 using System.Collections.Generic;
 
 namespace quicsharp
@@ -16,6 +16,7 @@ namespace quicsharp
         private UdpClient client_;
         private UInt32 packetNumber_;
 
+        // Connection to the QUIC server
         private QuicServerConnection serverConnection_;
 
         public bool Connected;
@@ -23,6 +24,10 @@ namespace quicsharp
         public static Mutex mutex = new Mutex();
 
         public List<Frame> awaitingFrames = new List<Frame>();
+
+        // Tasks to receive the quic packets in background
+        private Task receiveTask_;
+        private CancellationTokenSource receiveToken_;
 
         public QuicClient()
         {
@@ -60,18 +65,18 @@ namespace quicsharp
                 serverConnection_ = new QuicServerConnection(new UdpClient(), server, initPack.DCID, initPack.SCID, mutex);
                 Connected = true;
             }
-            Task.Run(() => Receive(server));
+            receiveToken_ = new CancellationTokenSource();
+            receiveTask_ = Task.Run(() => Receive(server), receiveToken_.Token);
         }
         private void Receive(IPEndPoint endpoint)
         {
-            while (true)
+            while (!receiveToken_.IsCancellationRequested)
             {
                 Packet packet = Packet.Unpack(client_.Receive(ref endpoint));
                 serverConnection_.ReadPacket(packet);
                 mutex.WaitOne();
                 awaitingFrames.AddRange(packet.Frames);
                 mutex.ReleaseMutex();
-                Console.WriteLine($"Awaiting frames : {awaitingFrames.ToString()}");
             }
         }
 
@@ -97,6 +102,7 @@ namespace quicsharp
         {
             client_.Close();
             Connected = false;
+            receiveToken_.Cancel();
         }
 
         // Create a Stream

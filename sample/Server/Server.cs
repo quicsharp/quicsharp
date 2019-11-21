@@ -12,6 +12,8 @@ namespace quicsharp.sample
         {
             int port = 8880;
 
+            // Simualte 10% packet loss
+            QuicConnection.PacketLossPercentage = 10;
             QuicListener server = new QuicListener(port);
 
             Console.WriteLine("Server listening on port : {0}", port);

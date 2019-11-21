@@ -31,6 +31,7 @@ namespace quicsharp.tests
             {
                 ShortHeaderPacket pack = new ShortHeaderPacket();
                 pack.PacketNumber = i;
+                pack.IsAckEliciting = true;
                 pm.Register(pack, i);
             }
 

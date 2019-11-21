@@ -11,6 +11,9 @@ namespace Client
             Console.Write("Before connecting, what will be your username? -> ");
             string username = Console.ReadLine();
 
+            // Simulate 10% packet loss
+            QuicConnection.PacketLossPercentage = 10;
+
             while (username.Length > 32 || username.Length == 0)
             {
                 Console.Write("The username must be less than 32 bytes. Try again -> ");
@@ -75,7 +78,6 @@ namespace Client
 
             while (true)
             {
-                //int readBytes = stream_.Receive(buffer, 0, buffer.Length);
                 Thread.Sleep(10000);
                 Console.SetCursorPosition(0, Console.CursorTop);
 
