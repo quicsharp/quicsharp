@@ -69,17 +69,17 @@ namespace quicsharp
                     uint scid = BitConverter.ToUInt32((packet as LongHeaderPacket).SCID, 0);
 
                     QuicConnection connection = connectionPool_.Find(scid);
-                    Console.WriteLine($"Received Packet from connectionID {scid} with the following frames :");
+                    Logger.Write($"Received Packet from connectionID {scid}");
                     connection.ReadPacket(packet);
                 }
             }
             catch (CorruptedPacketException e)
             {
-                Console.WriteLine($"Received a corrupted QUIC packet {e.Message}");
+                Logger.Write($"Received a corrupted QUIC packet {e.Message}");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Source);
+                Logger.Write(e.Source);
                 throw e;
             }
         }
@@ -87,9 +87,9 @@ namespace quicsharp
         private void HandleInitialPacket(InitialPacket packet, IPEndPoint client)
         {
             InitialPacket initPack = packet as InitialPacket;
-            Console.WriteLine("New initial packet");
+            Logger.Write("New initial packet created (Server Side");
             initPack.DecodeFrames();
-            Console.WriteLine("Data received {0}:{1}.", client.Address, client.Port);
+            Logger.Write($"Data received from server {client.Address}:{client.Port}");
 
             QuicClientConnection qc = new QuicClientConnection(new UdpClient(), client, new byte[0], id_);
             byte[] dcid = connectionPool_.AddConnection(qc);
