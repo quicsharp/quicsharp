@@ -14,7 +14,7 @@ namespace quicsharp
     /// </summary>
     public class QuicConnection
     {
-        private IPEndPoint endpoint_;
+        public IPEndPoint Endpoint { get; private set; }
         private UdpClient socket_;
         private UInt64 lastStreamId_;
 
@@ -45,7 +45,7 @@ namespace quicsharp
         public QuicConnection(UdpClient socket, IPEndPoint endPoint, byte[] scid, byte[] dcid)
         {
             socket_ = socket;
-            endpoint_ = endPoint;
+            Endpoint = endPoint;
             streams_ = new Dictionary<UInt64, QuicStream>();
             packetManager_ = new PacketManager(scid, dcid);
             lastStreamId_ = 0;
@@ -147,7 +147,7 @@ namespace quicsharp
 
                     // Simulate packet loss
                     if (rnd.Next(100) > PacketLossPercentage)
-                        socket_.Send(data, data.Length, endpoint_);
+                        socket_.Send(data, data.Length, Endpoint);
                     else
                         Logger.Write($"Packet number {packet.Key} not sent");
                 }
@@ -172,7 +172,7 @@ namespace quicsharp
             int sent = 0;
             if (rnd.Next(100) > PacketLossPercentage)
             {
-                sent = socket_.Send(data, data.Length, endpoint_);
+                sent = socket_.Send(data, data.Length, Endpoint);
             }
             else
             {
@@ -204,7 +204,7 @@ namespace quicsharp
         /// <param name="frame">The frame to add</param>
         public void AddFrame(Frame frame)
         {
-            if (socket_ == null || endpoint_ == null)
+            if (socket_ == null || Endpoint == null)
                 throw new NullReferenceException();
             // TODO: only ShortHeaderPacket for now
             if (currentPacket_ == null)
