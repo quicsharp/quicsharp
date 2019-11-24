@@ -37,8 +37,7 @@ namespace quicsharp
         static public int PacketLossPercentage = 0;
 
         /// <summary>
-        /// Create the QUIC connection information. Use the QuicConnectionWithClient or QuicConnectionWithServer
-        /// to correctly initiate the Source ID and the Destination ID.
+        /// Create the QUIC connection information
         /// </summary>
         /// <param name="socket">The related UDP socket</param>
         /// <param name="endPoint">The endpoint to save</param>

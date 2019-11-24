@@ -97,7 +97,7 @@ namespace quicsharp
         }
 
         /// <summary>
-        /// Handle an InitialPacket to create a new QuicConnectionWithClient related to this packet.
+        /// Handle an InitialPacket to create a new QuicConnection related to this packet.
         /// </summary>
         /// <param name="packet">The packet received</param>
         /// <param name="client">The client that sent the packet</param>
@@ -115,7 +115,7 @@ namespace quicsharp
                 rng.GetBytes(connID);
             } while (connectionPool_.Find(connID) != null);
 
-            QuicConnectionWithClient qc = new QuicConnectionWithClient(server_, client, connID, incomingPacket.SCID);
+            QuicConnection qc = new QuicConnection(server_, client, connID, incomingPacket.SCID);
             connectionPool_.AddConnection(qc, connID);
 
             InitialPacket responsePacket = new InitialPacket(incomingPacket.SCID, connID, 0);

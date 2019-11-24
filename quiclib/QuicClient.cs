@@ -20,7 +20,7 @@ namespace quicsharp
         private UInt32 packetNumber_;
 
         // Connection to the QUIC server
-        private QuicConnectionWithServer connection_;
+        private QuicConnection connection_;
 
         public bool Connected;
 
@@ -70,7 +70,7 @@ namespace quicsharp
 
                 InitialPacket initPack = packet as InitialPacket;
                 Logger.Write($"Connection established. This is client {BitConverter.ToString(initPack.DCID)} connected to server {BitConverter.ToString(initPack.SCID)}");
-                connection_ = new QuicConnectionWithServer(client_, server, initPack.DCID, initPack.SCID, mutex);
+                connection_ = new QuicConnection(client_, server, initPack.DCID, initPack.SCID, mutex);
                 Connected = true;
             }
 
