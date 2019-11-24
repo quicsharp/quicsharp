@@ -85,6 +85,9 @@ The payload contains a StreamFrame with the data entered by the user, but Wiresh
 ## About using Wireshark
 
 Only specific versions of Wireshark are capable of inspecting QUIC draft-v23 packets.
+See the [Wireshark / QUIC compatibility chart](https://github.com/quicwg/base-drafts/wiki/Tools#wireshark), then head to the [Wireshark development builds page](https://www.wireshark.org/download) to download an appropriate version.
+
+The screenshots were made using Wireshark 3.1.1rc0-492-g179901c269a7.
 
 ## State of the project
 
