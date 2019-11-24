@@ -20,7 +20,7 @@ namespace quicsharp
         private UInt32 packetNumber_;
 
         // Connection to the QUIC server
-        private QuicConnectionWithServer serverConnection_;
+        private QuicConnectionWithServer connection_;
 
         public bool Connected;
 
@@ -70,7 +70,7 @@ namespace quicsharp
 
                 InitialPacket initPack = packet as InitialPacket;
                 Logger.Write($"Connection established. This is client {BitConverter.ToString(initPack.DCID)} connected to server {BitConverter.ToString(initPack.SCID)}");
-                serverConnection_ = new QuicConnectionWithServer(new UdpClient(), server, initPack.DCID, initPack.SCID, mutex);
+                connection_ = new QuicConnectionWithServer(client_, server, initPack.DCID, initPack.SCID, mutex);
                 Connected = true;
             }
 
@@ -88,7 +88,7 @@ namespace quicsharp
             while (!receiveToken_.IsCancellationRequested)
             {
                 Packet packet = Packet.Unpack(client_.Receive(ref endpoint));
-                serverConnection_.ReadPacket(packet);
+                connection_.ReadPacket(packet);
                 mutex.WaitOne();
                 awaitingFrames.AddRange(packet.Frames);
                 mutex.ReleaseMutex();
@@ -113,7 +113,7 @@ namespace quicsharp
         public QuicStream CreateStream()
         {
             // TODO: choose a stream type
-            return serverConnection_.CreateStream(0);
+            return connection_.CreateStream(0);
         }
     }
 }

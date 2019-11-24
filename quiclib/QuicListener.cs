@@ -118,7 +118,7 @@ namespace quicsharp
                 rng.GetBytes(connID);
             } while (connectionPool_.Find(connID) != null);
 
-            QuicConnectionWithClient qc = new QuicConnectionWithClient(new UdpClient(), client, connID, incomingPacket.SCID);
+            QuicConnectionWithClient qc = new QuicConnectionWithClient(server_, client, connID, incomingPacket.SCID);
             connectionPool_.AddConnection(qc, connID);
 
             InitialPacket responsePacket = new InitialPacket(incomingPacket.SCID, connID, 0);
