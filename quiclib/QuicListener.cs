@@ -73,11 +73,18 @@ namespace quicsharp
                     // The available connection pool for new client connections currently ranges from 4096 to 2**24
                     if ((packet as LongHeaderPacket).SCIDLength > 24)
                         throw new IndexOutOfRangeException("SCID should only be encoded on 3 bytes so far");
-                    byte[] scid = (packet as LongHeaderPacket).SCID;
+                    byte[] dcid = (packet as LongHeaderPacket).DCID;
+                    Logger.Write($"Received packet with DCID {BitConverter.ToString(dcid)}");
 
-                    QuicConnection connection = connectionPool_.Find(scid);
-                    Logger.Write($"Received Packet from connectionID {scid}");
-                    connection.ReadPacket(packet);
+                    QuicConnection connection = connectionPool_.Find(dcid);
+                    if (connection == null)
+                    {
+                        Logger.Write($"No existing connection find for ID {BitConverter.ToString(dcid)}");
+                    }
+                    else
+                    {
+                        connection.ReadPacket(packet);
+                    }
                 }
             }
             catch (CorruptedPacketException e)
