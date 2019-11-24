@@ -14,13 +14,11 @@ To showcase the capabilities of this C# library, we created a sample QUIC client
 
 Let's launch both and have the client initiate a connection to the server:
 
-**TODO: super-short video**
+![Connection establishment](media/connection-establishment.gif)
 
-Using Wireshark, we can see the details of what was transmitted under the hood:
+Using Wireshark, we can see that two packets were transmitted: one from the client to the server to initiate the connection, and a response from the server.
 
-**TODO: screen capture**
-
-Two packets were transmitted: one from the client to the server to initiate the connection, and a response from the server.
+![Overview of transmitted packets](media/wireshark-overview-1.png)
 
 ### Client -> server initial packet
 
@@ -45,7 +43,7 @@ For more details, see [7.2: Negotiating connection IDs](https://tools.ietf.org/h
 
 In this initial client -> server packet, the client picks a random SCID and a random DCID:
 
-**TODO: screen capture**
+![Inspection of first packet](media/wireshark-packet-1.png)
 
 Apart from that, the packet contains a payload, consisting of one or more frames. A frame has a type (e.g. PADDING, CRYPTO, ACK) and type-dependant fields. For more details, see [12.4: Frames and Frame Types](https://tools.ietf.org/html/draft-ietf-quic-transport-23#section-12.4).
 
@@ -56,7 +54,7 @@ The spec requires that the Initial packet contains, in the payload, a CRYPTO fra
 In its response, as the spec requires, the server kept the SCID provided by the client and used it as DCID.
 It also picks a new, random SCID that the client will use in subsequent interactions.
 
-**TODO: screen capture**
+![Inspection of second packet](media/wireshark-packet-2.png)
 
 Again, because we did not implement QUIC-TLS, the server's answer does not include any CRYPTO frame, only PADDING frames.
 
@@ -72,17 +70,17 @@ To be able to communicate information between the client and the server without 
 
 Let's see this in practice:
 
-**TODO: super-short video**
+![Connection establishment](media/0-RTT-exchange.gif)
 
-Here, our client sent a 0-RTT packet, with a StreamFrame containing the data entered by the user.
+We can see in Wireshark that two more packets were exchanged:
 
-We can see this packet in Wireshark:
+![Overview of transmitted packets](media/wireshark-overview-2.png)
 
-**TODO: screen capture**
+First, our client sent a 0-RTT packet, using the same SCID and DCID as previously defined.
 
-The SCID and DCID are the same as previously defined.
+The payload contains a StreamFrame with the data entered by the user, but Wireshark cannot decode this part because we did not implement header protection, which is part of QUIC-TLS (see [5.4: Header Protection](https://tools.ietf.org/html/draft-ietf-quic-tls-23#section-5.4)). We can however see this StreamFrame in the raw bytes viewer at the bottom:
 
-<!-- The payload contains a StreamFrame (as seen in the byte visualization), but Wireshark cannot decode this part because o -->
+![Inspection of third packet](media/wireshark-packet-3.png)
 
 ## About using Wireshark
 
@@ -103,3 +101,11 @@ Only specific versions of Wireshark are capable of inspecting QUIC draft-v23 pac
 This project is a C# library. There is a client sample and a server sample in this repository.
 
 ### Limitations
+
+### Appendix
+
+Command used to make the GIFs in this README (from .mov files):
+
+```sh
+ffmpeg -i in.mov -pix_fmt rgb8 -r 10 -f gif - | gifsicle --optimize=3 --delay=8 | gifsicle "#0--2" -d400 "#-1" -O2 > out.gif
+```
