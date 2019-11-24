@@ -67,8 +67,8 @@ namespace quicsharp
                 Logger.Write($"Data received from server {server.Address}:{server.Port}");
 
                 InitialPacket initPack = packet as InitialPacket;
-                Logger.Write($"Connection established. This is client {BitConverter.ToString(initPack.DCID)} connected to server {BitConverter.ToString(initPack.SCID)}");
-                connection_ = new QuicConnection(client_, server, initPack.DCID, initPack.SCID);
+                Logger.Write($"Connection established. This is client {BitConverter.ToString(initPack.DCID_)} connected to server {BitConverter.ToString(initPack.SCID_)}");
+                connection_ = new QuicConnection(client_, server, initPack.DCID_, initPack.SCID_);
                 Connected = true;
             }
 
