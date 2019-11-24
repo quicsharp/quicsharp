@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Net;
 using System.Threading;
 
 using quicsharp.Frames;

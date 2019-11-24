@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace quicsharp
 {
@@ -88,7 +86,7 @@ namespace quicsharp
         {
             // TODO: Check input
             Size = 0;
-           
+
             switch (BitUtils.ReadNBits(indexBegin, data, 2))
             {
                 case 0:

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 using quicsharp.Frames;
 
@@ -83,7 +82,7 @@ namespace quicsharp
                     default: results.Add(null); break;
                 }
 
-                if(frameType > 0x03 || frameType == 0x01)
+                if (frameType > 0x03 || frameType == 0x01)
                 {
                     /* https://tools.ietf.org/html/draft-ietf-quic-recovery-23#section-2
                      * Ack-eliciting Frames:  All frames besides ACK or PADDING are
