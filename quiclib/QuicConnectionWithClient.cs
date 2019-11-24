@@ -7,9 +7,9 @@ namespace quicsharp
     /// <summary>
     /// QuicConnection that handle client information.
     /// </summary>
-    public class QuicConnectionFromClient : QuicConnection
+    public class QuicConnectionWithClient : QuicConnection
     {
-        public QuicConnectionFromClient(UdpClient server, IPEndPoint endpoint, byte[] connID, byte[] peerID) : base(server, endpoint, connID, peerID)
+        public QuicConnectionWithClient(UdpClient server, IPEndPoint endpoint, byte[] connID, byte[] peerID) : base(server, endpoint, connID, peerID)
         {
 
         }

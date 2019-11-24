@@ -99,7 +99,7 @@ namespace quicsharp
         }
 
         /// <summary>
-        /// Handle an InitialPacket to create a new QuicConnectionFromClient related to this packet.
+        /// Handle an InitialPacket to create a new QuicConnectionWithClient related to this packet.
         /// </summary>
         /// <param name="packet">The packet received</param>
         /// <param name="client">The client that sent the packet</param>
@@ -118,13 +118,14 @@ namespace quicsharp
                 rng.GetBytes(connID);
             } while (connectionPool_.Find(connID) != null);
 
-            QuicConnectionFromClient qc = new QuicConnectionFromClient(new UdpClient(), client, connID, incomingPacket.SCID);
+            QuicConnectionWithClient qc = new QuicConnectionWithClient(new UdpClient(), client, connID, incomingPacket.SCID);
             connectionPool_.AddConnection(qc, connID);
 
             InitialPacket responsePacket = new InitialPacket(incomingPacket.SCID, connID, 0);
             responsePacket.AddFrame(new PaddingFrame());
             byte[] b = responsePacket.Encode();
             server_.Send(b, b.Length, client);
+            Logger.Write($"Connection established. This is server {BitConverter.ToString(connID)} connected to client {BitConverter.ToString(incomingPacket.SCID)}");
         }
     }
 }

@@ -37,7 +37,7 @@ namespace quicsharp
         static public int PacketLossPercentage = 0;
 
         /// <summary>
-        /// Create the QUIC connection information. Use the QuicConnectionFromClient or QuicConnectionToServer
+        /// Create the QUIC connection information. Use the QuicConnectionWithClient or QuicConnectionWithServer
         /// to correctly initiate the Source ID and the Destination ID.
         /// </summary>
         /// <param name="socket">The related UDP socket</param>
@@ -167,7 +167,7 @@ namespace quicsharp
             }
             else
             {
-                Logger.Write($"Packet number {packet.PacketNumber} initially not sent");
+                Logger.Write($"Packet #{packet.PacketNumber} not sent because of simulated packet loss");
             }
 
             // If some bytes were sent
