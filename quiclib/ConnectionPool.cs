@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace quicsharp
 {
@@ -10,7 +9,6 @@ namespace quicsharp
     public class ConnectionPool
     {
         private Dictionary<string, QuicConnection> _pool = new Dictionary<string, QuicConnection>();
-        private static ASCIIEncoding _enc = new ASCIIEncoding();
 
         /// <summary>
         /// Add a connection to the connection pool
