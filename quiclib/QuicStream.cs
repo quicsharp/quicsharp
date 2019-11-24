@@ -59,6 +59,7 @@ namespace quicsharp
             StreamFrame frame = new StreamFrame(StreamId, 0, data, true, false);
 
             connection_.AddFrame(frame);
+            connection_.SendCurrentPacket();
         }
     }
 }
