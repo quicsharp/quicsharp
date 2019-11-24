@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 using quicsharp.Frames;
 
@@ -14,9 +15,6 @@ namespace quicsharp
     {
         private UdpClient server_;
         private bool started_;
-
-        private static UInt32 idCounter_ = 0;
-        private byte[] id_;
 
         public int Port { get; private set; }
 
@@ -40,8 +38,6 @@ namespace quicsharp
         {
             server_ = new UdpClient(Port);
             started_ = true;
-            id_ = BitConverter.GetBytes(idCounter_);
-            idCounter_++;
         }
 
         /// <summary>
@@ -77,7 +73,7 @@ namespace quicsharp
                     // The available connection pool for new client connections currently ranges from 4096 to 2**24
                     if ((packet as LongHeaderPacket).SCIDLength > 24)
                         throw new IndexOutOfRangeException("SCID should only be encoded on 3 bytes so far");
-                    uint scid = BitConverter.ToUInt32((packet as LongHeaderPacket).SCID, 0);
+                    byte[] scid = (packet as LongHeaderPacket).SCID;
 
                     QuicConnection connection = connectionPool_.Find(scid);
                     Logger.Write($"Received Packet from connectionID {scid}");
@@ -102,18 +98,25 @@ namespace quicsharp
         /// <param name="client">The client that sent the packet</param>
         private void HandleInitialPacket(InitialPacket packet, IPEndPoint client)
         {
-            InitialPacket initPack = packet as InitialPacket;
-            Logger.Write("New initial packet created (Server Side");
-            initPack.DecodeFrames();
+            InitialPacket incomingPacket = packet as InitialPacket;
+            incomingPacket.DecodeFrames();
             Logger.Write($"Data received from server {client.Address}:{client.Port}");
 
-            QuicClientConnection qc = new QuicClientConnection(new UdpClient(), client, new byte[0], id_);
-            byte[] dcid = connectionPool_.AddConnection(qc);
-            qc.SetDCID(dcid);
+            // Create random connection ID and use it as SCID for server -> client communications
+            // Make sure it's not already in use
+            byte[] scid = new byte[8];
+            do
+            {
+                RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+                rng.GetBytes(scid);
+            } while (connectionPool_.Find(scid) != null);
 
-            InitialPacket initialPacket = new InitialPacket(dcid, id_, 0);
-            initialPacket.AddFrame(new PaddingFrame());
-            byte[] b = initialPacket.Encode();
+            QuicClientConnection qc = new QuicClientConnection(new UdpClient(), client, scid, incomingPacket.SCID);
+            connectionPool_.AddConnection(qc, scid);
+
+            InitialPacket responsePacket = new InitialPacket(incomingPacket.SCID, scid, 0);
+            responsePacket.AddFrame(new PaddingFrame());
+            byte[] b = responsePacket.Encode();
             server_.Send(b, b.Length, client);
         }
     }

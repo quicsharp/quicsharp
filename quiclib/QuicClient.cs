@@ -70,7 +70,7 @@ namespace quicsharp
                 Logger.Write($"Data received from server {server.Address}:{server.Port}");
 
                 InitialPacket initPack = packet as InitialPacket;
-                Logger.Write($"Connection started. I am client n {BitConverter.ToUInt32(initPack.DCID, 0)} connected to server n {BitConverter.ToUInt32(initPack.SCID, 0)}");
+                Logger.Write($"Connection started. I am client {BitConverter.ToString(initPack.DCID)} connected to server {BitConverter.ToString(initPack.SCID)}");
                 serverConnection_ = new QuicServerConnection(new UdpClient(), server, initPack.DCID, initPack.SCID, mutex);
                 Connected = true;
             }

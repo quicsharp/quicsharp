@@ -9,62 +9,51 @@ namespace quicsharp
     /// </summary>
     public class ConnectionPool
     {
-        /// <summary>
-        /// Id limit for a connection
-        /// </summary>
-        private int maxConnection_ = 16777216;
-
-        private UInt32 connectionId_ = 4096;
-
-        private Dictionary<UInt32, QuicConnection> _pool = new Dictionary<UInt32, QuicConnection>();
+        private Dictionary<string, QuicConnection> _pool = new Dictionary<string, QuicConnection>();
+        private static ASCIIEncoding _enc = new ASCIIEncoding();
 
         /// <summary>
         /// Add a connection to the connection pool
         /// </summary>
         /// <param name="connection">The connection to add</param>
-        /// <returns></returns>
-        public byte[] AddConnection(QuicConnection connection)
+        /// <param name="connID">ID of the connection peer (= SCID or DCID)</param>
+        public void AddConnection(QuicConnection connection, byte[] connID)
         {
-            if (_pool.ContainsKey(connectionId_))
-                return new byte[] { };
+            string strConnID = BitConverter.ToString(connID);
+            _pool.Add(strConnID, connection);
 
-            if (_pool.Count > maxConnection_)
-                return new byte[] { };
-
-            // TODO : give correct ID ; Does not work when removing connection
-            _pool.Add(connectionId_, connection);
-
-            Logger.Write($"Connection added to the ConnectionPool: id = {connectionId_}");
-            connectionId_++;
-
-            return BitConverter.GetBytes(connectionId_ - 1);
+            Logger.Write($"Connection {strConnID} added to the ConnectionPool");
         }
 
         /// <summary>
         /// Remove a connection from the connection pool
         /// Used when a connection with the server is closed
         /// </summary>
-        /// <param name="id">The connection to remove</param>
-        public void RemoveConnection(UInt32 id)
+        /// <param name="connID">ID of the connection peer (= SCID or DCID) to remove</param>
+        public void RemoveConnection(byte[] connID)
         {
-            if (_pool.ContainsKey(id))
+            string strConnID = BitConverter.ToString(connID);
+
+            if (_pool.ContainsKey(strConnID))
             {
-                _pool.Remove(id);
-                Logger.Write($"Connection removed from the ConnectionPool: id = {id}");
+                _pool.Remove(strConnID);
+                Logger.Write($"Connection #{strConnID} removed from the ConnectionPool");
             }
         }
 
         /// <summary>
-        /// Return the connection related to the client connection id
+        /// Return the connection related to the connID
         /// </summary>
-        /// <param name="id">Client connection id</param>
+        /// <param name="connID">ID of the connection peer (= SCID or DCID) to find</param>
         /// <returns>The connection instance</returns>
-        public QuicConnection Find(UInt32 id)
+        public QuicConnection Find(byte[] connID)
         {
-            if (_pool.ContainsKey(id) == false)
+            string strConnID = BitConverter.ToString(connID);
+
+            if (_pool.ContainsKey(strConnID) == false)
                 return null;
 
-            return _pool[id];
+            return _pool[strConnID];
         }
     }
 }

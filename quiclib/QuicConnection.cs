@@ -17,6 +17,8 @@ namespace quicsharp
         private IPEndPoint endpoint_;
         private UdpClient socket_;
         private UInt64 lastStreamId_;
+        public byte[] scid_;
+        public byte[] dcid_;
 
         protected PacketManager packetManager_;
         // TODO : split awaiting frames by packet space
@@ -40,12 +42,14 @@ namespace quicsharp
         /// </summary>
         /// <param name="socket">The related UDP socket</param>
         /// <param name="endPoint">The endpoint to save</param>
-        /// <param name="scid">Source Connection ID</param>
-        /// <param name="dcid">Destination Connection ID</param>
+        /// <param name="scid">Source Connection ID for outgoing packets (= our ID)</param>
+        /// <param name="dcid">Destination Connection ID for outgoing packets (= peer ID)</param>
         public QuicConnection(UdpClient socket, IPEndPoint endPoint, byte[] scid, byte[] dcid)
         {
             socket_ = socket;
             endpoint_ = endPoint;
+            scid_ = scid;
+            dcid_ = dcid;
             streams_ = new Dictionary<UInt64, QuicStream>();
             packetManager_ = new PacketManager(scid, dcid);
             lastStreamId_ = 0;
