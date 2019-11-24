@@ -90,12 +90,12 @@ namespace quicsharp
                     if (frame is StreamFrame)
                     {
                         StreamFrame sf = frame as StreamFrame;
-                        Logger.Write($"Received StreamFrame in packet number {packet.PacketNumber} with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
+                        Logger.Write($"Received StreamFrame in packet #{packet.PacketNumber} with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
                     }
                     if (frame is AckFrame)
                     {
                         AckFrame af = frame as AckFrame;
-                        Logger.Write($"Received AckFrame in packet number {packet.PacketNumber}");
+                        Logger.Write($"Received AckFrame in packet #{packet.PacketNumber}");
                         packetManager_.ProcessAckFrame(af);
                     }
                 }
@@ -135,13 +135,13 @@ namespace quicsharp
                 {
                     byte[] data = packet.Value.Encode();
 
-                    Logger.Write($"Packet number {packet.Key} sent again");
+                    Logger.Write($"Packet #{packet.Key} sent again");
 
                     // Simulate packet loss
                     if (rnd.Next(100) > PacketLossPercentage)
                         socket_.Send(data, data.Length, endpoint_);
                     else
-                        Logger.Write($"Packet number {packet.Key} not sent");
+                        Logger.Write($"Packet #{packet.Key} not sent because of simulated packet loss");
                 }
                 packetManager_.HistoryMutex.ReleaseMutex();
 
