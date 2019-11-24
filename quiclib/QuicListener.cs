@@ -99,7 +99,7 @@ namespace quicsharp
         }
 
         /// <summary>
-        /// Handle an InitialPacket to create a new QuicClientConnection related to this packet.
+        /// Handle an InitialPacket to create a new QuicConnectionFromClient related to this packet.
         /// </summary>
         /// <param name="packet">The packet received</param>
         /// <param name="client">The client that sent the packet</param>
@@ -111,17 +111,17 @@ namespace quicsharp
 
             // Create random connection ID and use it as SCID for server -> client communications
             // Make sure it's not already in use
-            byte[] scid = new byte[8];
+            byte[] connID = new byte[8];
             do
             {
                 RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-                rng.GetBytes(scid);
-            } while (connectionPool_.Find(scid) != null);
+                rng.GetBytes(connID);
+            } while (connectionPool_.Find(connID) != null);
 
-            QuicClientConnection qc = new QuicClientConnection(new UdpClient(), client, scid, incomingPacket.SCID);
-            connectionPool_.AddConnection(qc, scid);
+            QuicConnectionFromClient qc = new QuicConnectionFromClient(new UdpClient(), client, connID, incomingPacket.SCID);
+            connectionPool_.AddConnection(qc, connID);
 
-            InitialPacket responsePacket = new InitialPacket(incomingPacket.SCID, scid, 0);
+            InitialPacket responsePacket = new InitialPacket(incomingPacket.SCID, connID, 0);
             responsePacket.AddFrame(new PaddingFrame());
             byte[] b = responsePacket.Encode();
             server_.Send(b, b.Length, client);

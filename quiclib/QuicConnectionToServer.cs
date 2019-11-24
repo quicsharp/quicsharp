@@ -10,11 +10,11 @@ namespace quicsharp
     /// <summary>
     /// QuicConnection that handle client information.
     /// </summary>
-    public class QuicServerConnection : QuicConnection
+    public class QuicConnectionToServer : QuicConnection
     {
-        public QuicServerConnection(UdpClient server, IPEndPoint endpoint, byte[] clientId, byte[] serverId, Mutex mutex) : base(server, endpoint, clientId, serverId)
+        public QuicConnectionToServer(UdpClient server, IPEndPoint endpoint, byte[] connID, byte[] peerID, Mutex mutex) : base(server, endpoint, connID, peerID)
         {
-            
+
         }
     }
 }

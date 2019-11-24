@@ -12,8 +12,6 @@ namespace quicsharp
     {
         private QuicConnection connection_;
         private SortedList<UInt64, byte[]> _data = new SortedList<ulong, byte[]>();
-        private UInt64 maximumStreamData;
-        private UInt64 currentTransferRate;
 
         private VariableLengthInteger streamId_ = new VariableLengthInteger(0);
         public UInt64 StreamId
@@ -39,8 +37,6 @@ namespace quicsharp
         {
             StreamId = streamId.Value;
 
-            maximumStreamData = 32; // TODO
-            currentTransferRate = 0; // TODO
             connection_ = connection;
             Type = streamType;
         }

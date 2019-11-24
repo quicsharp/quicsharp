@@ -37,21 +37,19 @@ namespace quicsharp
         static public int PacketLossPercentage = 0;
 
         /// <summary>
-        /// Create the QUIC connection information. Use the QuicClientConnection or QuicServerConnection
+        /// Create the QUIC connection information. Use the QuicConnectionFromClient or QuicConnectionToServer
         /// to correctly initiate the Source ID and the Destination ID.
         /// </summary>
         /// <param name="socket">The related UDP socket</param>
         /// <param name="endPoint">The endpoint to save</param>
-        /// <param name="scid">Source Connection ID for outgoing packets (= our ID)</param>
-        /// <param name="dcid">Destination Connection ID for outgoing packets (= peer ID)</param>
-        public QuicConnection(UdpClient socket, IPEndPoint endPoint, byte[] scid, byte[] dcid)
+        /// <param name="connID">DCID of incoming packets, SCID of outgoing packets</param>
+        /// <param name="peerID">DCID of outgoing packets, SCID of incoming packets</param>
+        public QuicConnection(UdpClient socket, IPEndPoint endPoint, byte[] connID, byte[] peerID)
         {
             socket_ = socket;
             endpoint_ = endPoint;
-            scid_ = scid;
-            dcid_ = dcid;
             streams_ = new Dictionary<UInt64, QuicStream>();
-            packetManager_ = new PacketManager(scid, dcid);
+            packetManager_ = new PacketManager(connID, peerID);
             lastStreamId_ = 0;
             resendToken_ = new CancellationTokenSource();
             resendTask_ = Task.Run(() => ResendNonAckPackets(), resendToken_.Token);
@@ -174,21 +172,6 @@ namespace quicsharp
 
             // If some bytes were sent
             return sent;
-        }
-
-        /// <summary>
-        /// Set the Destination Connection ID
-        /// </summary>
-        /// <param name="dcid">New Destination Connection ID</param>
-        /// <returns>True if it was a success</returns>
-        public bool SetDCID(byte[] dcid)
-        {
-            if (dcid != null || dcid.Length == 0)
-                return false;
-
-            packetManager_.DCID = dcid;
-
-            return true;
         }
 
         /// <summary>
