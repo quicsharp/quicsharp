@@ -115,7 +115,8 @@ namespace quicsharp
             {
                 AckFrame ack = new AckFrame(new List<UInt32>() { packet.PacketNumber }, 100);
                 AddFrame(ack);
-                Logger.Write($"Ack the received packet number {packet.PacketNumber}");
+                SendCurrentPacket();
+                Logger.Write($"Acked packet #{packet.PacketNumber}");
             }
         }
 
@@ -189,9 +190,6 @@ namespace quicsharp
                 currentPacket_ = new RTTPacket();
 
             currentPacket_.AddFrame(frame);
-
-            // TODO: decide when to send the packet
-            SendCurrentPacket();
         }
 
         /// <summary>

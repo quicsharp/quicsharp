@@ -62,6 +62,7 @@ namespace quicsharp
             {
                 // Listening
                 Packet packet = Packet.Unpack(server_.Receive(ref client));
+                Logger.Write($"Data received from server {client.Address}:{client.Port}");
 
                 if (packet is InitialPacket)
                 {
@@ -70,9 +71,6 @@ namespace quicsharp
                 else
                 {
                     packet = packet as LongHeaderPacket;
-                    // The available connection pool for new client connections currently ranges from 4096 to 2**24
-                    if ((packet as LongHeaderPacket).SCIDLength > 24)
-                        throw new IndexOutOfRangeException("SCID should only be encoded on 3 bytes so far");
                     byte[] dcid = (packet as LongHeaderPacket).DCID;
                     Logger.Write($"Received packet with DCID {BitConverter.ToString(dcid)}");
 
@@ -107,7 +105,6 @@ namespace quicsharp
         {
             InitialPacket incomingPacket = packet as InitialPacket;
             incomingPacket.DecodeFrames();
-            Logger.Write($"Data received from server {client.Address}:{client.Port}");
 
             // Create random connection ID and use it as SCID for server -> client communications
             // Make sure it's not already in use
