@@ -17,12 +17,9 @@ namespace quicsharp
         private IPEndPoint endpoint_;
         private UdpClient socket_;
         private UInt64 lastStreamId_;
-        public byte[] scid_;
-        public byte[] dcid_;
 
         protected PacketManager packetManager_;
         // TODO : split awaiting frames by packet space
-        protected Queue<Frame> awaitingFrames_;
         public List<UInt32> Received = new List<UInt32>();
         protected Dictionary<UInt64, QuicStream> streams_;
 

@@ -11,7 +11,6 @@ namespace quicsharp
     public class QuicStream
     {
         private QuicConnection connection_;
-        private SortedList<UInt64, byte[]> _data = new SortedList<ulong, byte[]>();
 
         private VariableLengthInteger streamId_ = new VariableLengthInteger(0);
         public UInt64 StreamId
