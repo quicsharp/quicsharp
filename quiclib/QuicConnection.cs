@@ -226,6 +226,10 @@ namespace quicsharp
             return streams_[id];
         }
 
+        /// <summary>
+        /// Return the List of QuicStreams opened by the connection
+        /// </summary>
+        /// <returns></returns>
         public List<QuicStream> GetStreams()
         {
             List<QuicStream> list = new List<QuicStream>();
@@ -236,6 +240,11 @@ namespace quicsharp
             return list;
         }
 
+        /// <summary>
+        /// Get a specific stream, creates it if it does not exist yet
+        /// </summary>
+        /// <param name="id">The id of the stream wanted</param>
+        /// <returns></returns>
         public QuicStream GetStreamOrCreate(ulong id)
         {
             while (!streams_.ContainsKey(id))

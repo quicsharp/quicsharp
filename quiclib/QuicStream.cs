@@ -65,12 +65,20 @@ namespace quicsharp
             connection_.SendCurrentPacket();
         }
 
+        /// <summary>
+        /// Add a stream frame to the queue of frames to read
+        /// </summary>
+        /// <param name="sf">StreamFrame to be added to the queue</param>
         public void AddFrameToRead(StreamFrame sf)
         {
             _toRead.Enqueue(sf);
             mre.Set();
         }
 
+        /// <summary>
+        /// Return the byte array corresponding to the data from the next frame to be read
+        /// </summary>
+        /// <returns></returns>
         public byte[] Read()
         {
             mre.WaitOne();

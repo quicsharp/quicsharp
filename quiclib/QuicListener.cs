@@ -149,6 +149,10 @@ namespace quicsharp
             Logger.Write($"Connection established. This is server {BitConverter.ToString(connID)} connected to client {BitConverter.ToString(incomingPacket.SCID_)}");
         }
 
+        /// <summary>
+        /// Returns the ConnectionPool object
+        /// </summary>
+        /// <returns></returns>
         public ConnectionPool getConnectionPool()
         {
             return connectionPool_;
