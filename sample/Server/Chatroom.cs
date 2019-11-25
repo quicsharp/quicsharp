@@ -7,19 +7,19 @@ namespace Server
 {
     public class Chatroom
     {
-        List<QuicClientConnection> Connections = new List<QuicClientConnection>();
+        List<QuicConnection> Connections = new List<QuicConnection>();
 
-        public void addConnection(QuicClientConnection newConnection)
+        public void addConnection(QuicConnection newConnection)
         {
             Connections.Add(newConnection);
         }
         
-        public void removeConnection(QuicClientConnection connection)
+        public void removeConnection(QuicConnection connection)
         {
             Connections.Remove(connection);
         }
 
-        public bool containsConnection(QuicClientConnection connection)
+        public bool containsConnection(QuicConnection connection)
         {
             return Connections.Contains(connection);
         }

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Security.Cryptography;
 using System.Threading;
 
-using quicsharp.Frames;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -20,7 +18,7 @@ namespace quicsharp
         private UInt32 packetNumber_;
 
         // Connection to the QUIC server
-        private QuicServerConnection serverConnection_;
+        private QuicConnection connection_;
 
         public bool Connected;
 
@@ -70,13 +68,12 @@ namespace quicsharp
             // Start the connection with an InitialPacket
             if (packet.GetType() == typeof(InitialPacket))
             {
-                Logger.Write("New initial packet created (Client Side)");
                 packet.DecodeFrames();
                 Logger.Write($"Data received from server {server.Address}:{server.Port}");
 
                 InitialPacket initPack = packet as InitialPacket;
-                Logger.Write($"Connection started. I am client n {BitConverter.ToUInt32(initPack.DCID, 0)} connected to server n {BitConverter.ToUInt32(initPack.SCID, 0)}");
-                serverConnection_ = new QuicServerConnection(new UdpClient(), server, initPack.DCID, initPack.SCID, mutex);
+                Logger.Write($"Connection established. This is client {BitConverter.ToString(initPack.DCID_)} connected to server {BitConverter.ToString(initPack.SCID_)}");
+                connection_ = new QuicConnection(client_, server, initPack.DCID_, initPack.SCID_);
                 Connected = true;
             }
 
@@ -94,7 +91,7 @@ namespace quicsharp
             while (!receiveToken_.IsCancellationRequested)
             {
                 Packet packet = Packet.Unpack(client_.Receive(ref endpoint));
-                serverConnection_.ReadPacket(packet);
+                connection_.ReadPacket(packet);
                 mutex.WaitOne();
                 awaitingFrames.AddRange(packet.Frames);
                 mutex.ReleaseMutex();
@@ -119,7 +116,7 @@ namespace quicsharp
         public QuicStream CreateStream()
         {
             // TODO: choose a stream type
-            return serverConnection_.CreateStream(0);
+            return connection_.CreateStream(0);
         }
     }
 }

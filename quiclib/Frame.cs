@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace quicsharp
+﻿namespace quicsharp
 {
     /// <summary>
     /// Abstract class to define a frame. The payload of a packet is filled with one or more frames.

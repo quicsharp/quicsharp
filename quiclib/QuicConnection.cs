@@ -20,7 +20,6 @@ namespace quicsharp
 
         protected PacketManager packetManager_;
         // TODO : split awaiting frames by packet space
-        protected Queue<Frame> awaitingFrames_;
         public List<UInt32> Received = new List<UInt32>();
         protected Dictionary<UInt64, QuicStream> streams_;
 
@@ -35,19 +34,18 @@ namespace quicsharp
         static public int PacketLossPercentage = 0;
 
         /// <summary>
-        /// Create the QUIC connection information. Use the QuicClientConnection or QuicServerConnection
-        /// to correctly initiate the Source ID and the Destination ID.
+        /// Create the QUIC connection information
         /// </summary>
         /// <param name="socket">The related UDP socket</param>
         /// <param name="endPoint">The endpoint to save</param>
-        /// <param name="scid">Source Connection ID</param>
-        /// <param name="dcid">Destination Connection ID</param>
-        public QuicConnection(UdpClient socket, IPEndPoint endPoint, byte[] scid, byte[] dcid)
+        /// <param name="connID">DCID of incoming packets, SCID of outgoing packets</param>
+        /// <param name="peerID">DCID of outgoing packets, SCID of incoming packets</param>
+        public QuicConnection(UdpClient socket, IPEndPoint endPoint, byte[] connID, byte[] peerID)
         {
             socket_ = socket;
             Endpoint = endPoint;
             streams_ = new Dictionary<UInt64, QuicStream>();
-            packetManager_ = new PacketManager(scid, dcid);
+            packetManager_ = new PacketManager(connID, peerID);
             lastStreamId_ = 0;
             resendToken_ = new CancellationTokenSource();
             resendTask_ = Task.Run(() => ResendNonAckPackets(), resendToken_.Token);
@@ -104,7 +102,7 @@ namespace quicsharp
                     if (frame is AckFrame)
                     {
                         AckFrame af = frame as AckFrame;
-                        Logger.Write($"Received AckFrame in packet number {packet.PacketNumber}");
+                        Logger.Write($"Received AckFrame in packet #{packet.PacketNumber}");
                         packetManager_.ProcessAckFrame(af);
                     }
                 }
@@ -124,7 +122,8 @@ namespace quicsharp
             {
                 AckFrame ack = new AckFrame(new List<UInt32>() { packet.PacketNumber }, 100);
                 AddFrame(ack);
-                Logger.Write($"Ack the received packet number {packet.PacketNumber}");
+                SendCurrentPacket();
+                Logger.Write($"Acked packet #{packet.PacketNumber}");
             }
         }
 
@@ -143,13 +142,13 @@ namespace quicsharp
                 {
                     byte[] data = packet.Value.Encode();
 
-                    Logger.Write($"Packet number {packet.Key} sent again");
+                    Logger.Write($"Packet #{packet.Key} sent again");
 
                     // Simulate packet loss
                     if (rnd.Next(100) > PacketLossPercentage)
                         socket_.Send(data, data.Length, Endpoint);
                     else
-                        Logger.Write($"Packet number {packet.Key} not sent");
+                        Logger.Write($"Packet #{packet.Key} not sent because of simulated packet loss");
                 }
                 packetManager_.HistoryMutex.ReleaseMutex();
 
@@ -176,25 +175,10 @@ namespace quicsharp
             }
             else
             {
-                Logger.Write($"Packet number {packet.PacketNumber} initially not sent");
+                Logger.Write($"Packet #{packet.PacketNumber} not sent because of simulated packet loss");
             }
             // If some bytes were sent
             return sent;
-        }
-
-        /// <summary>
-        /// Set the Destination Connection ID
-        /// </summary>
-        /// <param name="dcid">New Destination Connection ID</param>
-        /// <returns>True if it was a success</returns>
-        public bool SetDCID(byte[] dcid)
-        {
-            if (dcid != null || dcid.Length == 0)
-                return false;
-
-            packetManager_.DCID = dcid;
-
-            return true;
         }
 
         /// <summary>
@@ -212,9 +196,6 @@ namespace quicsharp
                 currentPacket_ = new RTTPacket();
 
             currentPacket_.AddFrame(frame);
-
-            // TODO: decide when to send the packet
-            SendCurrentPacket();
         }
 
         /// <summary>

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace quicsharp
 {
@@ -46,13 +45,13 @@ namespace quicsharp
         {
         }
 
-        public RTTPacket(byte[] dcid, byte[] scid, uint packetNumber)
+        public RTTPacket(byte[] DCID, byte[] SCID, uint packetNumber)
         {
             PacketNumber = packetNumber;
-            DCID = dcid;
-            DCIDLength = (uint)dcid.Length;
-            SCID = scid;
-            SCIDLength = (uint)scid.Length;
+            DCID_ = DCID;
+            DCIDLength_ = (uint)DCID.Length;
+            SCID_ = SCID;
+            SCIDLength_ = (uint)SCID.Length;
         }
 
         /// <summary>
@@ -64,7 +63,7 @@ namespace quicsharp
         {
             // Decode the Long Header
             int cursor = base.Decode(data);
-            if (PacketType != 1)
+            if (packetType_ != 1)
                 throw new CorruptedPacketException("Wrong packet type");
             ReservedBits = BitUtils.ReadNBits(reservedBitsIndex_, data, 2);
 

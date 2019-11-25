@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 
 using quicsharp.Frames;
@@ -51,13 +50,13 @@ namespace quicsharp
         {
         }
 
-        public InitialPacket(byte[] dcid, byte[] scid, uint packetNumber)
+        public InitialPacket(byte[] DCID, byte[] SCID, uint packetNumber)
         {
             PacketNumber = packetNumber;
-            DCID = dcid;
-            DCIDLength = (uint)dcid.Length;
-            SCID = scid;
-            SCIDLength = (uint)scid.Length;
+            DCID_ = DCID;
+            DCIDLength_ = (uint)DCID.Length;
+            SCID_ = SCID;
+            SCIDLength_ = (uint)SCID.Length;
         }
 
         /// <summary>
@@ -69,7 +68,7 @@ namespace quicsharp
         {
             // Decode the Long Header
             int cursor = base.Decode(data);
-            if (PacketType != 0)
+            if (packetType_ != 0)
                 throw new CorruptedPacketException("Wrong packet type");
             ReservedBits = BitUtils.ReadNBits(reservedBitsIndex_, data, 2);
 

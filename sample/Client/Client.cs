@@ -76,15 +76,17 @@ namespace Client
             while (true)
             {
                 byte[] msg = stream_.Read();
-                Console.SetCursorPosition(0, Console.CursorTop);
 
+                int leftCursor = Console.CursorLeft;
                 int currentLineCursor = Console.CursorTop;
-                Console.SetCursorPosition(0, Console.CursorTop);
+                Console.MoveBufferArea(0, currentLineCursor, Console.WindowWidth, 1, 0, currentLineCursor + 1);
+
+                Console.SetCursorPosition(0, currentLineCursor);
                 Console.Write(new string(' ', Console.WindowWidth));
                 Console.SetCursorPosition(0, currentLineCursor);
 
                 Console.WriteLine(System.Text.Encoding.UTF8.GetString(msg));
-                Console.Write("# Your message: ");
+                Console.SetCursorPosition(leftCursor, currentLineCursor + 1);
             }
         }
     }

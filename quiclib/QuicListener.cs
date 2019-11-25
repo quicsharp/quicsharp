@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Collections.Generic;
+using System.Security.Cryptography;
 
 using quicsharp.Frames;
 using System.Threading.Tasks;
@@ -80,12 +80,13 @@ namespace quicsharp
 
             while (!receiveToken_.IsCancellationRequested)
             {
+                // Listening
+                Packet packet = Packet.Unpack(server_.Receive(ref client));
+                Logger.Write($"Data received from server {client.Address}:{client.Port}");
 
                 try
                 {
                     // Listening
-                    Packet packet = Packet.Unpack(server_.Receive(ref client));
-
                     if (packet is InitialPacket)
                     {
                         HandleInitialPacket(packet as InitialPacket, client);
@@ -93,14 +94,18 @@ namespace quicsharp
                     else
                     {
                         packet = packet as LongHeaderPacket;
-                        // The available connection pool for new client connections currently ranges from 4096 to 2**24
-                        if ((packet as LongHeaderPacket).SCIDLength > 24)
-                            throw new IndexOutOfRangeException("SCID should only be encoded on 3 bytes so far");
-                        uint scid = BitConverter.ToUInt32((packet as LongHeaderPacket).SCID, 0);
+                        byte[] DCID = (packet as LongHeaderPacket).DCID_;
+                        Logger.Write($"Received packet with DCID {BitConverter.ToString(DCID)}");
 
-                        QuicConnection connection = connectionPool_.Find(scid);
-                        Logger.Write($"Received Packet from connectionID {scid}");
-                        connection.ReadPacket(packet);
+                        QuicConnection connection = connectionPool_.Find(DCID);
+                        if (connection == null)
+                        {
+                            Logger.Write($"No existing connection find for ID {BitConverter.ToString(DCID)}");
+                        }
+                        else
+                        {
+                            connection.ReadPacket(packet);
+                        }
                     }
                 }
                 catch (CorruptedPacketException e)
@@ -116,25 +121,32 @@ namespace quicsharp
         }
 
         /// <summary>
-        /// Handle an InitialPacket to create a new QuicClientConnection related to this packet.
+        /// Handle an InitialPacket to create a new QuicConnection related to this packet.
         /// </summary>
         /// <param name="packet">The packet received</param>
         /// <param name="client">The client that sent the packet</param>
         private void HandleInitialPacket(InitialPacket packet, IPEndPoint client)
         {
-            InitialPacket initPack = packet as InitialPacket;
-            Logger.Write("New initial packet created (Server Side");
-            initPack.DecodeFrames();
-            Logger.Write($"Data received from server {client.Address}:{client.Port}");
+            InitialPacket incomingPacket = packet as InitialPacket;
+            incomingPacket.DecodeFrames();
 
-            QuicClientConnection qc = new QuicClientConnection(new UdpClient(), client, new byte[0], id_);
-            byte[] dcid = connectionPool_.AddConnection(qc);
-            qc.SetDCID(dcid);
+            // Create random connection ID and use it as SCID for server -> client communications
+            // Make sure it's not already in use
+            byte[] connID = new byte[8];
+            do
+            {
+                RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+                rng.GetBytes(connID);
+            } while (connectionPool_.Find(connID) != null);
 
-            InitialPacket initialPacket = new InitialPacket(dcid, id_, 0);
-            initialPacket.AddFrame(new PaddingFrame());
-            byte[] b = initialPacket.Encode();
+            QuicConnection qc = new QuicConnection(server_, client, connID, incomingPacket.SCID_);
+            connectionPool_.AddConnection(qc, connID);
+
+            InitialPacket responsePacket = new InitialPacket(incomingPacket.SCID_, connID, 0);
+            responsePacket.AddFrame(new PaddingFrame());
+            byte[] b = responsePacket.Encode();
             server_.Send(b, b.Length, client);
+            Logger.Write($"Connection established. This is server {BitConverter.ToString(connID)} connected to client {BitConverter.ToString(incomingPacket.SCID_)}");
         }
 
         public ConnectionPool getConnectionPool()

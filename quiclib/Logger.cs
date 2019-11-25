@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading;
 
 namespace quicsharp
 {
@@ -12,13 +8,18 @@ namespace quicsharp
         public static void Write(string log)
         {
             // Clear the actual line
-            Console.SetCursorPosition(0, Console.CursorTop);
             int currentLineCursor = Console.CursorTop;
-            Console.SetCursorPosition(0, Console.CursorTop);
+            int leftCursor = Console.CursorLeft;
+
+            Console.MoveBufferArea(0, currentLineCursor, Console.WindowWidth, 1, 0, currentLineCursor + 1);
+
+            Console.SetCursorPosition(0, currentLineCursor);
             Console.Write(new string(' ', Console.WindowWidth));
             Console.SetCursorPosition(0, currentLineCursor);
 
             Console.WriteLine($"[LOG] {DateTime.Now.ToLongTimeString()}: {log}");
+
+            Console.SetCursorPosition(leftCursor, currentLineCursor + 1);
         }
     }
 }

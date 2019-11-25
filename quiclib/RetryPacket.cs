@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace quicsharp
 {
@@ -44,7 +43,7 @@ namespace quicsharp
         public override int Decode(byte[] data)
         {
             int cursor = base.Decode(data);
-            if (PacketType != 3)
+            if (packetType_ != 3)
                 throw new CorruptedPacketException("Wrong packet type");
 
             // Read ODCID Len

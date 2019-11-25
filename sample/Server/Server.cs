@@ -31,8 +31,8 @@ namespace quicsharp.sample
             {
                 foreach (QuicConnection connection in server.getConnectionPool().GetPool())
                 {
-                    if(!chatroom.containsConnection(connection as QuicClientConnection)){
-                        chatroom.addConnection(connection as QuicClientConnection);
+                    if(!chatroom.containsConnection(connection)){
+                        chatroom.addConnection(connection);
                         tasks.Add(Task.Run(() => ProcessMessagesFromConnection(connection, server)));
                     }              
                 }

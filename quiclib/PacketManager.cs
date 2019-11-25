@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Net;
 using System.Threading;
 
 using quicsharp.Frames;
@@ -16,8 +14,11 @@ namespace quicsharp
     {
         // Section 12.3
         private UInt32 packetNumber_ = 0;
-        public byte[] SCID = new byte[] { };
-        public byte[] DCID = new byte[] { };
+
+        // connID = connection ID = DCID of incoming packets, SCID of outgoing packets
+        // peerID = DCID of outgoing packets, SCID of incoming packets
+        public byte[] connID_ = new byte[] { };
+        public byte[] peerID_ = new byte[] { };
 
         // Used to prevent race exception when sending packet again
         public Mutex HistoryMutex = new Mutex();
@@ -27,10 +28,10 @@ namespace quicsharp
         /// </summary>
         private Dictionary<UInt32, bool> received_ = new Dictionary<UInt32, bool>();
 
-        public PacketManager(byte[] scid, byte[] dcid)
+        public PacketManager(byte[] connID, byte[] peerID)
         {
-            SCID = scid;
-            DCID = dcid;
+            connID_ = connID;
+            peerID_ = peerID;
         }
 
         /// <summary>
@@ -42,10 +43,10 @@ namespace quicsharp
             if (packet is LongHeaderPacket)
             {
                 LongHeaderPacket lhp = packet as LongHeaderPacket;
-                lhp.DCID = DCID;
-                lhp.DCIDLength = (UInt32)DCID.Length;
-                lhp.SCID = SCID;
-                lhp.SCIDLength = (UInt32)SCID.Length;
+                lhp.DCID_ = peerID_;
+                lhp.DCIDLength_ = (UInt32)peerID_.Length;
+                lhp.SCID_ = connID_;
+                lhp.SCIDLength_ = (UInt32)connID_.Length;
             }
             // The retry packets do not have a packet number
             if (!(packet is RetryPacket))
