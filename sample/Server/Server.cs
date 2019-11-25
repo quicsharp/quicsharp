@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
+using System.Threading.Tasks;
 using quicsharp;
+using Server;
 
 namespace quicsharp.sample
 {
@@ -13,9 +15,13 @@ namespace quicsharp.sample
         {
             int port = 8880;
 
-            // Simualte 10% packet loss
+            // Simulate 10% packet loss
             QuicConnection.PacketLossPercentage = 10;
             QuicListener server = new QuicListener(port);
+
+            Chatroom chatroom = new Chatroom();
+
+            List<Task> tasks = new List<Task>();
 
             Console.WriteLine("Server listening on port : {0}", port);
 
@@ -25,20 +31,28 @@ namespace quicsharp.sample
             {
                 foreach (QuicConnection connection in server.getConnectionPool().GetPool())
                 {
-                    // read and handle system messages
-                    try
-                    {
-                        byte[] newSystemmessage = connection.GetStreamOrCreate(0).Read();
-                        HandleSystemMessages(newSystemmessage, connection.Endpoint, server);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
+                    if(!chatroom.containsConnection(connection as QuicClientConnection)){
+                        chatroom.addConnection(connection as QuicClientConnection);
+                        tasks.Add(Task.Run(() => ProcessMessagesFromConnection(connection, server)));
+                    }              
                 }
-
             }
+        }
 
+        static public void ProcessMessagesFromConnection(QuicConnection connection, QuicListener server)
+        {
+            while (true)
+            {
+                try
+                {
+                    byte[] newSystemmessage = connection.GetStreamOrCreate(0).Read();
+                    HandleSystemMessages(newSystemmessage, connection.Endpoint, server);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
         }
 
         static public void HandleSystemMessages(byte[] message, IPEndPoint sender, QuicListener server)
