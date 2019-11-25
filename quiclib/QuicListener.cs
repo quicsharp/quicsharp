@@ -39,6 +39,11 @@ namespace quicsharp
             connectionPool_ = new ConnectionPool();
         }
 
+        ~QuicListener()
+        {
+            Close();
+        }
+
         /// <summary>
         /// Start the listener
         /// </summary>
