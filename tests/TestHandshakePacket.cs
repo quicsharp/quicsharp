@@ -14,11 +14,11 @@ namespace quicsharp.tests
         {
             HandshakePacket sentP = new HandshakePacket
             {
-                DCIDLength = 2,
-                DCID = new byte[] { 0x1a, 0x85 },
+                DCIDLength_ = 2,
+                DCID_ = new byte[] { 0x1a, 0x85 },
                 PacketNumberLength = 3,
-                SCIDLength = 2,
-                SCID = new byte[] { 0x09, 0x34 },
+                SCIDLength_ = 2,
+                SCID_ = new byte[] { 0x09, 0x34 },
                 PacketNumber = 91235,
                 Payload = new byte[] { 0x01, 0x10 },
             };
@@ -30,10 +30,10 @@ namespace quicsharp.tests
             Assert.AreEqual(p.GetType(), typeof(HandshakePacket));
             HandshakePacket recP = p as HandshakePacket;
 
-            Assert.AreEqual((UInt32)2, recP.DCIDLength);
-            CollectionAssert.AreEqual(new byte[] { 0x1a, 0x85 }, recP.DCID);
-            Assert.AreEqual((UInt32)2, recP.SCIDLength);
-            CollectionAssert.AreEqual(new byte[] { 0x09, 0x34 }, recP.SCID);
+            Assert.AreEqual((UInt32)2, recP.DCIDLength_);
+            CollectionAssert.AreEqual(new byte[] { 0x1a, 0x85 }, recP.DCID_);
+            Assert.AreEqual((UInt32)2, recP.SCIDLength_);
+            CollectionAssert.AreEqual(new byte[] { 0x09, 0x34 }, recP.SCID_);
             Assert.AreEqual((UInt32)3, recP.PacketNumberLength);
             Assert.AreEqual((UInt32)91235, recP.PacketNumber);
             Assert.AreEqual((UInt64)5, recP.Length.Value); // 5 = PacketNumberLength + Payload.Length
@@ -49,11 +49,11 @@ namespace quicsharp.tests
             Assert.AreEqual(p.GetType(), typeof(HandshakePacket));
             HandshakePacket recP = p as HandshakePacket;
 
-            Assert.AreEqual(0xff000017, recP.Version);
-            Assert.AreEqual((UInt32)17, recP.DCIDLength);
-            CollectionAssert.AreEqual((new HexData("16b9c8c2eb9a0c815d415be8bda522edfa")).bytes, recP.DCID);
-            Assert.AreEqual((UInt32)20, recP.SCIDLength);
-            CollectionAssert.AreEqual((new HexData("5e1178e63dd8e8da9f9c637dd95b03413c82cd8c")).bytes, recP.SCID);
+            Assert.AreEqual(0xff000017, recP.version_);
+            Assert.AreEqual((UInt32)17, recP.DCIDLength_);
+            CollectionAssert.AreEqual((new HexData("16b9c8c2eb9a0c815d415be8bda522edfa")).bytes, recP.DCID_);
+            Assert.AreEqual((UInt32)20, recP.SCIDLength_);
+            CollectionAssert.AreEqual((new HexData("5e1178e63dd8e8da9f9c637dd95b03413c82cd8c")).bytes, recP.SCID_);
 
             // Something shady is going on with packet number length. See TestInitialPacket
             // TODO: fix this
