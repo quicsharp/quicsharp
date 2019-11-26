@@ -24,8 +24,8 @@ namespace quicsharp
         private QuicConnection _connection;
 
         // Tasks to receive the quic packets in background
-        private Task receiveTask_;
-        private CancellationTokenSource receiveToken_;
+        private Task _receiveTask;
+        private CancellationTokenSource _receiveToken;
 
         public QuicClient()
         {
@@ -73,8 +73,8 @@ namespace quicsharp
             }
 
             // Background task to receive packets from the remote server
-            receiveToken_ = new CancellationTokenSource();
-            receiveTask_ = Task.Run(() => Receive(server), receiveToken_.Token);
+            _receiveToken = new CancellationTokenSource();
+            _receiveTask = Task.Run(() => Receive(server), _receiveToken.Token);
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace quicsharp
         /// <param name="endpoint">QUIC endpoint</param>
         private void Receive(IPEndPoint endpoint)
         {
-            while (!receiveToken_.IsCancellationRequested)
+            while (!_receiveToken.IsCancellationRequested)
             {
                 Packet packet = Packet.Unpack(_client.Receive(ref endpoint));
                 _connection.ReadPacket(packet);
@@ -99,7 +99,7 @@ namespace quicsharp
         public void Close()
         {
             _client.Close();
-            receiveToken_.Cancel();
+            _receiveToken.Cancel();
         }
 
         /// <summary>

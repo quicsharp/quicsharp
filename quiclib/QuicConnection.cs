@@ -14,27 +14,24 @@ namespace quicsharp
     /// </summary>
     public class QuicConnection
     {
-        public IPEndPoint Endpoint { get; private set; }
-        private UdpClient socket_;
-        private UInt64 lastStreamId_;
-
-        protected PacketManager packetManager_;
-        // TODO : split awaiting frames by packet space
-        public List<UInt32> Received = new List<UInt32>();
-        protected Dictionary<UInt64, QuicStream> streams_;
-
-        protected Packet currentPacket_;
-
-        // Background task to send packets again
-        private Task resendTask_;
-        private CancellationTokenSource resendToken_;
-
         // Debug variable. Set it from 0 to 100
         // Simulate packet loss by not sending the packet.
         static public int PacketLossPercentage = 0;
 
+        public IPEndPoint Endpoint { get; private set; }
+        private PacketManager _packetManager;
+        private Dictionary<UInt64, QuicStream> _streams;
+        private Packet _currentPacket;
+        private UdpClient _socket;
+        private UInt64 _lastStreamId;
+        private List<UInt32> _received = new List<UInt32>();
+
+        // Background task to send packets again
+        private Task _resendTask;
+        private CancellationTokenSource _resendToken;
+
         // Delay, in milliseconds, at the end of which a packet is considered lost and to be sent again
-        static public int AckDelay = 1000;
+        static private int _ackDelay = 1000;
 
         /// <summary>
         /// Create the QUIC connection information
@@ -45,18 +42,18 @@ namespace quicsharp
         /// <param name="peerID">DCID of outgoing packets, SCID of incoming packets</param>
         public QuicConnection(UdpClient socket, IPEndPoint endPoint, byte[] connID, byte[] peerID)
         {
-            socket_ = socket;
+            _socket = socket;
             Endpoint = endPoint;
-            streams_ = new Dictionary<UInt64, QuicStream>();
-            packetManager_ = new PacketManager(connID, peerID);
-            lastStreamId_ = 0;
-            resendToken_ = new CancellationTokenSource();
-            resendTask_ = Task.Run(() => ResendNonAckPackets(), resendToken_.Token);
+            _streams = new Dictionary<UInt64, QuicStream>();
+            _packetManager = new PacketManager(connID, peerID);
+            _lastStreamId = 0;
+            _resendToken = new CancellationTokenSource();
+            _resendTask = Task.Run(() => ResendNonAckPackets(), _resendToken.Token);
         }
 
         ~QuicConnection()
         {
-            resendToken_.Cancel();
+            _resendToken.Cancel();
         }
 
         /// <summary>
@@ -66,9 +63,9 @@ namespace quicsharp
         /// <returns>The new stream</returns>
         public QuicStream CreateStream(byte type)
         {
-            QuicStream stream = new QuicStream(this, new VariableLengthInteger(lastStreamId_), type);
-            streams_.Add(lastStreamId_, stream);
-            lastStreamId_++;
+            QuicStream stream = new QuicStream(this, new VariableLengthInteger(_lastStreamId), type);
+            _streams.Add(_lastStreamId, stream);
+            _lastStreamId++;
 
             return stream;
         }
@@ -80,7 +77,7 @@ namespace quicsharp
         public void ReadPacket(Packet packet)
         {
             // Process every new packet
-            if (!packetManager_.IsPacketOld(packet))
+            if (!_packetManager.IsPacketOld(packet))
             {
                 packet.DecodeFrames();
 
@@ -106,12 +103,12 @@ namespace quicsharp
                     {
                         AckFrame af = frame as AckFrame;
                         Logger.Write($"Received AckFrame in packet #{packet.PacketNumber}");
-                        packetManager_.ProcessAckFrame(af);
+                        _packetManager.ProcessAckFrame(af);
                     }
                 }
 
                 // Store received PacketNumber for further implementation of acknowledgement procedure
-                Received.Add(packet.PacketNumber);
+                _received.Add(packet.PacketNumber);
             }
             else
             {
@@ -137,13 +134,13 @@ namespace quicsharp
         {
             Random rnd = new Random();
 
-            while (!resendToken_.IsCancellationRequested)
+            while (!_resendToken.IsCancellationRequested)
             {
                 // Wait for the packet manager to receive the packet
-                Thread.Sleep(AckDelay);
-                packetManager_.HistoryMutex.WaitOne();
+                Thread.Sleep(_ackDelay);
+                _packetManager.HistoryMutex.WaitOne();
                 // Send every packet not ack with a packet number lower than the highest packet number acknowledgded by the AckFrame
-                foreach (KeyValuePair<UInt32, Packet> packet in packetManager_.History)
+                foreach (KeyValuePair<UInt32, Packet> packet in _packetManager.History)
                 {
                     byte[] data = packet.Value.Encode();
 
@@ -151,11 +148,11 @@ namespace quicsharp
 
                     // Simulate packet loss
                     if (rnd.Next(100) > PacketLossPercentage)
-                        socket_.Send(data, data.Length, Endpoint);
+                        _socket.Send(data, data.Length, Endpoint);
                     else
                         Logger.Write($"Packet #{packet.Key} not sent because of simulated packet loss");
                 }
-                packetManager_.HistoryMutex.ReleaseMutex();
+                _packetManager.HistoryMutex.ReleaseMutex();
             }
         }
 
@@ -167,14 +164,14 @@ namespace quicsharp
         public int SendPacket(Packet packet)
         {
             Random rnd = new Random();
-            packetManager_.PreparePacket(packet);
+            _packetManager.PreparePacket(packet);
 
             byte[] data = packet.Encode();
 
             int sent = 0;
             if (rnd.Next(100) > PacketLossPercentage)
             {
-                sent = socket_.Send(data, data.Length, Endpoint);
+                sent = _socket.Send(data, data.Length, Endpoint);
             }
             else
             {
@@ -191,14 +188,14 @@ namespace quicsharp
         /// <param name="frame">The frame to add</param>
         public void AddFrame(Frame frame)
         {
-            if (socket_ == null || Endpoint == null)
+            if (_socket == null || Endpoint == null)
                 throw new NullReferenceException();
             // TODO: only ShortHeaderPacket for now
-            if (currentPacket_ == null)
+            if (_currentPacket == null)
                 // TO CHECK: use 0-RTT packet to send non encrypted data
-                currentPacket_ = new RTTPacket();
+                _currentPacket = new RTTPacket();
 
-            currentPacket_.AddFrame(frame);
+            _currentPacket.AddFrame(frame);
         }
 
         /// <summary>
@@ -207,11 +204,11 @@ namespace quicsharp
         /// <returns>Number of byte sent</returns>
         public int SendCurrentPacket()
         {
-            if (currentPacket_ == null)
+            if (_currentPacket == null)
                 throw new CorruptedPacketException();
-            int sentBytes = SendPacket(currentPacket_);
+            int sentBytes = SendPacket(_currentPacket);
 
-            currentPacket_ = null;
+            _currentPacket = null;
 
             return sentBytes;
         }
@@ -223,10 +220,10 @@ namespace quicsharp
         /// <returns>The wanted stream</returns>
         public QuicStream GetStream(UInt64 id)
         {
-            if (!streams_.ContainsKey(id))
+            if (!_streams.ContainsKey(id))
                 throw new ArgumentException($"The Quic Stream id {id} does not exist");
 
-            return streams_[id];
+            return _streams[id];
         }
 
         /// <summary>
@@ -236,7 +233,7 @@ namespace quicsharp
         public List<QuicStream> GetStreams()
         {
             List<QuicStream> list = new List<QuicStream>();
-            foreach(KeyValuePair<ulong, QuicStream> item in streams_)
+            foreach (KeyValuePair<ulong, QuicStream> item in _streams)
             {
                 list.Add(item.Value);
             }
@@ -250,11 +247,11 @@ namespace quicsharp
         /// <returns></returns>
         public QuicStream GetStreamOrCreate(ulong id)
         {
-            while (!streams_.ContainsKey(id))
+            while (!_streams.ContainsKey(id))
             {
                 CreateStream(0x00);
             }
-            return streams_[id];
+            return _streams[id];
         }
     }
 }
