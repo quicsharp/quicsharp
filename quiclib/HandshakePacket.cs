@@ -47,21 +47,27 @@ namespace quicsharp
         public override int Decode(byte[] data)
         {
             int cursor = base.Decode(data);
+            // Verify the PacketType
             if (PacketType != 2)
                 throw new CorruptedPacketException("Wrong packet type");
+            // Read the reserved bits (though they currently are not used)
             _reservedBits = BitUtils.ReadNBits(_reservedBitsIndex, data, 2);
 
+            // Read and verify the range for PacketNumberLength (1 to 4)
             PacketNumberLength = BitUtils.ReadNBits(_packetNumberLengthBitsIndex, data, 2) + 1;
             if (PacketNumberLength >= 5 || PacketNumberLength == 0)
                 throw new Exception("Invalid packet Number Length");
 
+            // Verify that the packet length is the announced length
             cursor += Length.Decode(cursor, data);
             if ((UInt64)data.Length != Length.Value + (UInt64)cursor / 8)
                 throw new CorruptedPacketException($"Handshake packet does not have the correct size. Expected: {Length.Value + (UInt64)cursor / 8} | Actual: {data.Length}");
 
+            // Read the packet number
             PacketNumber = (uint)BitUtils.ReadNBytes(cursor, data, PacketNumberLength);
             cursor += (Int32)PacketNumberLength * 8;
 
+            // Read the rest of the payload
             Payload = new byte[data.Length - (cursor / 8)];
             Array.Copy(data, cursor / 8, Payload, 0, Payload.Length);
             cursor += 8 * Payload.Length;

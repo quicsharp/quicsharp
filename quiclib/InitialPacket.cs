@@ -68,28 +68,34 @@ namespace quicsharp
         {
             // Decode the Long Header
             int cursor = base.Decode(data);
+
+            // Verify Packet type and read reserved bits
             if (PacketType != 0)
                 throw new CorruptedPacketException("Wrong packet type");
             _reservedBits = BitUtils.ReadNBits(_reservedBitsIndex, data, 2);
 
+            // Read and verify the range for PacketNumberLength (1 to 4)
             PacketNumberLength = BitUtils.ReadNBits(_packetNumberLengthBitsIndex, data, 2) + 1;
             if (PacketNumberLength >= 5 || PacketNumberLength == 0)
                 throw new Exception("Invalid packet Number Length");
 
+            // Read and decode both token length and actual token
             cursor += TokenLength.Decode(cursor, data);
 
-            // TODO: fix ReadNBytes so that it can take a ulong, then remove the conversion here
             Token = new byte[TokenLength.Value];
             Array.Copy(data, cursor / 8, Token, 0, (uint)TokenLength.Value);
             cursor += 8 * Convert.ToInt32(TokenLength.Value);
 
+            // Verify that the packet length is the announced length
             cursor += Length.Decode(cursor, data);
             if ((UInt64)data.Length != Length.Value + (UInt64)cursor / 8)
                 throw new CorruptedPacketException($"Initial packet does not have the correct size. Expected: {Length.Value + (UInt64)cursor / 8} | Actual: {data.Length}");
 
+            // Read the packet number
             PacketNumber = (uint)BitUtils.ReadNBytes(cursor, data, PacketNumberLength);
             cursor += (Int32)PacketNumberLength * 8;
 
+            // Read the rest of the payload
             Payload = new byte[data.Length - (cursor / 8)];
             Array.Copy(data, cursor / 8, Payload, 0, Payload.Length);
             cursor += 8 * Payload.Length;

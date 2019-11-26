@@ -66,7 +66,7 @@ namespace quicsharp
                         p = new RetryPacket();
                         break;
                     default:
-                        throw new ArgumentException("2 Bit-encoded uint is not amongst {0, 1, 2, 3} : mathematics are broken and life is lawless");
+                        throw new ArgumentException("2 Bit-encoded uint is not amongst {0, 1, 2, 3}");
                 }
                 p.Decode(data);
             }

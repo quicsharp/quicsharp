@@ -60,6 +60,10 @@ namespace quicsharp
             return _pool[strConnID];
         }
 
+        /// <summary>
+        /// Returns the list of connections currently active in the pool
+        /// </summary>
+        /// <returns>a list of connection instances</returns>
         public List<QuicConnection> GetPool()
         {
             _poolMutex.WaitOne();
