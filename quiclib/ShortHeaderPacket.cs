@@ -5,7 +5,7 @@ namespace quicsharp
     // QUIC IETF draft 17.3
     public class ShortHeaderPacket : Packet
     {
-        protected new static int _packetHeaderSize = 9;
+        protected static int _packetHeaderSize = 9;
         public bool Spin = false;
         public bool KeyPhase = false;
 

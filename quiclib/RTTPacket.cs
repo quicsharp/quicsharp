@@ -45,12 +45,12 @@ namespace quicsharp
         {
         }
 
-        public RTTPacket(byte[] DCID, byte[] SCID, uint packetNumber)
+        public RTTPacket(byte[] dcid, byte[] scid, uint packetNumber)
         {
             PacketNumber = packetNumber;
-            DCID = DCID;
+            DCID = dcid;
             DCIDLength = (uint)DCID.Length;
-            SCID = SCID;
+            SCID = scid;
             SCIDLength = (uint)SCID.Length;
         }
 
