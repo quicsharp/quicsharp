@@ -190,7 +190,7 @@ namespace quicsharp
         {
             if (_socket == null || Endpoint == null)
                 throw new NullReferenceException();
-            // TODO: only ShortHeaderPacket for now
+            // TODO: only 0-RTT packet for now
             if (_currentPacket == null)
                 // TO CHECK: use 0-RTT packet to send non encrypted data
                 _currentPacket = new RTTPacket();
