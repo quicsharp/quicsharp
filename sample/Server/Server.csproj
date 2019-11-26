@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\quiclib\quicsharp.csproj" />
+    <ProjectReference Include="..\..\lib\quicsharp.csproj" />
   </ItemGroup>
 
 </Project>

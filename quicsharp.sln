@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "quicsharp", "quiclib\quicsharp.csproj", "{A61AB250-8A40-4695-9707-9DFC38AAA244}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "quicsharp", "lib\quicsharp.csproj", "{A61AB250-8A40-4695-9707-9DFC38AAA244}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "sample\Server\Server.csproj", "{85ECAE26-A9FD-43CA-AD38-C0E8F32EF980}"
 EndProject
