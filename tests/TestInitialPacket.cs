@@ -13,14 +13,14 @@ namespace quicsharp.tests
         [TestMethod]
         public void TestEncodeAndDecode()
         {
-            // TODO: all the lengths fields should be set automatically (ex: DCIDLength should be auto computed from DCID)
+            // TODO: all the lengths fields should be set automatically (ex: DCIDLength_ should be auto computed from DCID_)
             InitialPacket sentP = new InitialPacket
             {
-                DCIDLength = 2,
-                DCID = new byte[] { 0xab, 0xcd },
+                DCIDLength_ = 2,
+                DCID_ = new byte[] { 0xab, 0xcd },
                 PacketNumberLength = 2,
-                SCIDLength = 3,
-                SCID = new byte[] { 0x12, 0x23, 0xcf },
+                SCIDLength_ = 3,
+                SCID_ = new byte[] { 0x12, 0x23, 0xcf },
                 PacketNumber = 1234,
                 TokenLength = new VariableLengthInteger(2),
                 Token = new byte[] { 0x42, 0x42 }
@@ -33,10 +33,10 @@ namespace quicsharp.tests
             Assert.AreEqual(p.GetType(), typeof(InitialPacket));
             InitialPacket recP = p as InitialPacket;
 
-            Assert.AreEqual(sentP.DCIDLength, recP.DCIDLength);
-            CollectionAssert.AreEqual(sentP.DCID, recP.DCID);
-            Assert.AreEqual(sentP.SCIDLength, recP.SCIDLength);
-            CollectionAssert.AreEqual(sentP.SCID, recP.SCID);
+            Assert.AreEqual(sentP.DCIDLength_, recP.DCIDLength_);
+            CollectionAssert.AreEqual(sentP.DCID_, recP.DCID_);
+            Assert.AreEqual(sentP.SCIDLength_, recP.SCIDLength_);
+            CollectionAssert.AreEqual(sentP.SCID_, recP.SCID_);
             Assert.AreEqual(sentP.PacketNumberLength, recP.PacketNumberLength);
             Assert.AreEqual(sentP.PacketNumber, recP.PacketNumber);
             Assert.AreEqual(sentP.TokenLength.Value, recP.TokenLength.Value);
@@ -55,11 +55,11 @@ namespace quicsharp.tests
             Assert.AreEqual(p.GetType(), typeof(InitialPacket));
             InitialPacket recP = p as InitialPacket;
 
-            Assert.AreEqual(0xff000017, recP.Version);
-            Assert.AreEqual((UInt32)18, recP.DCIDLength);
-            CollectionAssert.AreEqual((new HexData("a2702fa91b97cb3db9d7736d32f223193294")).bytes, recP.DCID);
-            Assert.AreEqual((UInt32)17, recP.SCIDLength);
-            CollectionAssert.AreEqual((new HexData("56221f7eed93c8ea78b87c0c80a55c60c6")).bytes, recP.SCID);
+            Assert.AreEqual(0xff000017, recP.version_);
+            Assert.AreEqual((UInt32)18, recP.DCIDLength_);
+            CollectionAssert.AreEqual((new HexData("a2702fa91b97cb3db9d7736d32f223193294")).bytes, recP.DCID_);
+            Assert.AreEqual((UInt32)17, recP.SCIDLength_);
+            CollectionAssert.AreEqual((new HexData("56221f7eed93c8ea78b87c0c80a55c60c6")).bytes, recP.SCID_);
 
             // Something shady is going on with packet number length.
             // Wireshark translates the initial 0xCF to 0b11000000 while our code translates it to 0b11001111
