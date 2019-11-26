@@ -84,6 +84,12 @@ The payload contains a StreamFrame with the data entered by the user, but Wiresh
 
 ![Inspection of third packet](media/wireshark-packet-3.png)
 
+Finally, the server acknowledges the successful receipt of the packet by sending an ACK frame:
+
+![Inspection of fourth packet](media/wireshark-packet-4.png)
+
+If the client had not received an acknowledgment before the end of the [ackDelay](https://github.com/quicsharp/quicsharp/blob/648a7ea093a3897d70db25fdd18dd51e8e89ab46/lib/QuicConnection.cs#L34), the client would re-send the non-acknwoledged packet.
+
 ## Usage
 
 This project is a C# library. To show how it can be used, a sample client and server are provided in `sample/`.
