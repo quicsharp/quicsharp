@@ -12,14 +12,14 @@ namespace quicsharp
     /// </summary>
     public sealed class InitialPacket : LongHeaderPacket
     {
-        public uint ReservedBits = 0;
         public uint PacketNumberLength = 1;
         public VariableLengthInteger TokenLength = new VariableLengthInteger(0);
         public byte[] Token = new byte[0];
         public VariableLengthInteger Length = new VariableLengthInteger(0);
 
-        private static int reservedBitsIndex_ => 4;
-        private static int packetNumberLengthBitsIndex_ => 6;
+        private uint _reservedBits = 0;
+        private static int _reservedBitsIndex => 4;
+        private static int _packetNumberLengthBitsIndex => 6;
 
         /*
            +-+-+-+-+-+-+-+-+
@@ -50,12 +50,12 @@ namespace quicsharp
         {
         }
 
-        public InitialPacket(byte[] DCID, byte[] SCID, uint packetNumber)
+        public InitialPacket(byte[] dcid, byte[] scid, uint packetNumber)
         {
             PacketNumber = packetNumber;
-            DCID = DCID;
+            DCID = dcid;
             DCIDLength = (uint)DCID.Length;
-            SCID = SCID;
+            SCID = scid;
             SCIDLength = (uint)SCID.Length;
         }
 
@@ -70,9 +70,9 @@ namespace quicsharp
             int cursor = base.Decode(data);
             if (PacketType != 0)
                 throw new CorruptedPacketException("Wrong packet type");
-            ReservedBits = BitUtils.ReadNBits(reservedBitsIndex_, data, 2);
+            _reservedBits = BitUtils.ReadNBits(_reservedBitsIndex, data, 2);
 
-            PacketNumberLength = BitUtils.ReadNBits(packetNumberLengthBitsIndex_, data, 2) + 1;
+            PacketNumberLength = BitUtils.ReadNBits(_packetNumberLengthBitsIndex, data, 2) + 1;
             if (PacketNumberLength >= 5 || PacketNumberLength == 0)
                 throw new Exception("Invalid packet Number Length");
 
