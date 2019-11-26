@@ -17,7 +17,7 @@ namespace Server
         {
             Connections.Add(newConnection);
         }
-        
+
         /// <summary>
         /// Remove a connection from the chatroom
         /// </summary>

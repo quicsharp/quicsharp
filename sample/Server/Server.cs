@@ -33,13 +33,14 @@ namespace quicsharp.sample
             {
                 foreach (QuicConnection connection in server.getConnectionPool().GetPool())
                 {
-                    if(!chatroom.containsConnection(connection)){
+                    if (!chatroom.containsConnection(connection))
+                    {
                         // Every new connection is added to the chatroom and a new listening thread is created
                         chatroom.addConnection(connection);
                         Thread t = new Thread(new ThreadStart(() => ProcessMessagesFromConnection(connection, chatroom)));
                         t.Start();
                         threads.Add(connection, t);
-                    }              
+                    }
                 }
 
                 foreach (QuicConnection connection in chatroom.Connections)
@@ -61,7 +62,7 @@ namespace quicsharp.sample
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="server"></param>
-        static public void ProcessMessagesFromConnection(QuicConnection connection, Chatroom chatroom)
+        static private void ProcessMessagesFromConnection(QuicConnection connection, Chatroom chatroom)
         {
             while (true)
             {
@@ -76,7 +77,7 @@ namespace quicsharp.sample
                 }
             }
         }
-        
+
         /// <summary>
         /// Decodes string from message and logs it to the system
         /// Broadcasts it to all users in the chatroom
@@ -84,7 +85,7 @@ namespace quicsharp.sample
         /// <param name="message">byte array representing the raw data from the stream frame</param>
         /// <param name="sender"></param>
         /// <param name="server"></param>
-        static public void HandleSystemMessages(byte[] message, IPEndPoint sender, Chatroom chatroom)
+        static private void HandleSystemMessages(byte[] message, IPEndPoint sender, Chatroom chatroom)
         {
             Console.WriteLine("Received Message :  " + ASCIIEncoding.UTF8.GetString(message));
 

@@ -71,7 +71,7 @@ namespace Client
             }
         }
 
-        public void ReceiveMessage()
+        private void ReceiveMessage()
         {
             while (true)
             {
