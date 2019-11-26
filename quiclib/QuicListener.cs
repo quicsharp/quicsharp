@@ -37,6 +37,7 @@ namespace quicsharp
             started_ = false;
             Port = port;
             connectionPool_ = new ConnectionPool();
+            Logger.LogToStdout = true;
         }
 
         ~QuicListener()

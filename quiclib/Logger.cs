@@ -1,25 +1,29 @@
 ﻿using System;
+using System.IO;
+using System.Threading;
 
 namespace quicsharp
 {
     // Used to easily output the lgos
     internal class Logger
     {
+        public static StreamWriter StreamOutput = File.AppendText("log_" + DateTime.Now.ToFileTime() + ".txt");
+        public static bool LogToStdout = false;
+        public static Mutex LogMutex = new Mutex();
         public static void Write(string log)
         {
-            // Clear the actual line
-            int currentLineCursor = Console.CursorTop;
-            int leftCursor = Console.CursorLeft;
+            LogMutex.WaitOne();
 
-            Console.MoveBufferArea(0, currentLineCursor, Console.WindowWidth, 1, 0, currentLineCursor + 1);
-
-            Console.SetCursorPosition(0, currentLineCursor);
-            Console.Write(new string(' ', Console.WindowWidth));
-            Console.SetCursorPosition(0, currentLineCursor);
-
-            Console.WriteLine($"[LOG] {DateTime.Now.ToLongTimeString()}: {log}");
-
-            Console.SetCursorPosition(leftCursor, currentLineCursor + 1);
+            if (!LogToStdout)
+            {
+                StreamOutput.AutoFlush = true;
+                StreamOutput.WriteLine($"[LOG] {DateTime.Now.ToLongTimeString()}: {log}");
+            }
+            else
+            {
+                Console.WriteLine($"[LOG] {DateTime.Now.ToLongTimeString()}: {log}");
+            }
+            LogMutex.ReleaseMutex();
         }
     }
 }
