@@ -93,7 +93,7 @@ namespace quicsharp
                         {
                             stream = GetStream(sf.StreamID.Value);
                         }
-                        catch (ArgumentException e)
+                        catch (ArgumentException)
                         {
                             stream = CreateStream(0x00);
                         }
