@@ -10,22 +10,20 @@ namespace quicsharp
     /// </summary>
     public class QuicStream
     {
-        private QuicConnection connection_;
-        private SortedList<UInt64, byte[]> _data = new SortedList<ulong, byte[]>();
+        private QuicConnection _connection;
         private Queue<StreamFrame> _toRead = new Queue<StreamFrame>();
+        private VariableLengthInteger _streamId = new VariableLengthInteger(0);
+        private ManualResetEvent _mre = new ManualResetEvent(false);
 
-        private VariableLengthInteger streamId_ = new VariableLengthInteger(0);
-
-        private ManualResetEvent mre = new ManualResetEvent(false);
         public UInt64 StreamId
         {
             get
             {
-                return streamId_.Value;
+                return _streamId.Value;
             }
             private set
             {
-                streamId_.Value = value;
+                _streamId.Value = value;
             }
         }
         public byte Type { get; private set; }
@@ -40,7 +38,7 @@ namespace quicsharp
         {
             StreamId = streamId.Value;
 
-            connection_ = connection;
+            _connection = connection;
             Type = streamType;
         }
 
@@ -61,8 +59,8 @@ namespace quicsharp
             // TODO: may split the message on multiple frames
             StreamFrame frame = new StreamFrame(StreamId, 0, data, true, false);
 
-            connection_.AddFrame(frame);
-            connection_.SendCurrentPacket();
+            _connection.AddFrame(frame);
+            _connection.SendCurrentPacket();
         }
 
         /// <summary>
@@ -72,7 +70,7 @@ namespace quicsharp
         public void AddFrameToRead(StreamFrame sf)
         {
             _toRead.Enqueue(sf);
-            mre.Set();
+            _mre.Set();
         }
 
         /// <summary>
@@ -81,11 +79,11 @@ namespace quicsharp
         /// <returns></returns>
         public byte[] Read()
         {
-            mre.WaitOne();
+            _mre.WaitOne();
             StreamFrame frame = _toRead.Dequeue();
             if (_toRead.Count == 0)
             {
-                mre.Reset();
+                _mre.Reset();
             }
             return frame.Data;
         }
