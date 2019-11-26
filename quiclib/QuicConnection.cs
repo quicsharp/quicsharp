@@ -33,6 +33,9 @@ namespace quicsharp
         // Simulate packet loss by not sending the packet.
         static public int PacketLossPercentage = 0;
 
+        // Delay, in milliseconds, at the end of which a packet is considered lost and to be sent again
+        static public int AckDelay = 1000;
+
         /// <summary>
         /// Create the QUIC connection information
         /// </summary>
@@ -136,13 +139,15 @@ namespace quicsharp
 
             while (!resendToken_.IsCancellationRequested)
             {
+                // Wait for the packet manager to receive the packet
+                Thread.Sleep(AckDelay);
                 packetManager_.HistoryMutex.WaitOne();
                 // Send every packet not ack with a packet number lower than the highest packet number acknowledgded by the AckFrame
                 foreach (KeyValuePair<UInt32, Packet> packet in packetManager_.History)
                 {
                     byte[] data = packet.Value.Encode();
 
-                    Logger.Write($"Packet #{packet.Key} sent again");
+                    Logger.Write($"Packet #{packet.Key} sent again as it was not acknowledged in time");
 
                     // Simulate packet loss
                     if (rnd.Next(100) > PacketLossPercentage)
@@ -151,8 +156,6 @@ namespace quicsharp
                         Logger.Write($"Packet #{packet.Key} not sent because of simulated packet loss");
                 }
                 packetManager_.HistoryMutex.ReleaseMutex();
-
-                Thread.Sleep(30);
             }
         }
 
