@@ -6,7 +6,7 @@ QUIC is a transport layer network protocol implemented on top of UDP. Amongst ot
 
 **This project is a partial implementation of the [IETF QUIC Transport draft v23](https://datatracker.ietf.org/doc/draft-ietf-quic-transport/23/).**
 
-It is an experimental school project. Due to time constraints, some parts of the implementation don't perfectly match the draft. Others, like QUIC-TLS, are completely ommitted. It is not actively maintained.
+It is an experimental project. Due to time constraints, some parts of the implementation don't perfectly match the draft. Others, like QUIC-TLS, are completely ommitted. It is not actively maintained.
 
 ## Demo
 
@@ -82,28 +82,62 @@ The payload contains a StreamFrame with the data entered by the user, but Wiresh
 
 ![Inspection of third packet](media/wireshark-packet-3.png)
 
-## About using Wireshark
+## Usage
+
+This project is a C# library. To show how it can be used, a sample client and server are provided in `sample/`.
+
+### Running the sample client and sample server
+
+Please take a look at the demo first to undestand what to expect.
+
+Start the server in one terminal window:
+
+```sh
+cd sample/Server
+dotnet run .
+```
+
+Start the client in another window:
+
+```sh
+cd sample/Client
+dotnet run .
+```
+
+If you want to inspect the transmitted packets, you can install a development build of Wireshark. See [about-wireshark] below.
+
+### Running unit tests
+
+At the root of the project:
+
+```sh
+dotnet test
+```
+
+### Using the library as a server (QuicListener)
+
+```csharp
+int port = 8880;
+QuicListener server = new QuicListener(port);
+server.Start();
+```
+
+### Using the library as a server (QuicClient)
+
+```csharp
+QuicClient client = new QuicClient();
+client.Connect("127.0.0.1", 8880);
+
+QuicStream stream = client.CreateStream();
+stream.Write()
+```
+
+## About Wireshark
 
 Only specific versions of Wireshark are capable of inspecting QUIC draft-v23 packets.
 See the [Wireshark / QUIC compatibility chart](https://github.com/quicwg/base-drafts/wiki/Tools#wireshark), then head to the [Wireshark development builds page](https://www.wireshark.org/download) to download an appropriate version.
 
 The screenshots were made using Wireshark 3.1.1rc0-492-g179901c269a7.
-
-## State of the project
-
-- A sample server-chat and a sample console based client chat were made to have an example on how to use the C# library.
-
-- Packet factory that implements all the Long Header Packet types and the Short Header Packet type. They should match the draft.
-- A few frames were implemented (Padding, Ack, Stream). They can be encoded and decoded inside every type of packet.
-- Streams are implemented and can be used like the TCP Streams in C#. However, the stream type is not implemented (it is always bidirectionnal).
-- The packets are acknowledged according to the draft. They are acknowledged more than necessary. We resend lost packets.
-- TLS is not implemented.
-
-## How to use
-
-This project is a C# library. There is a client sample and a server sample in this repository.
-
-### Limitations
 
 ### Appendix
 
