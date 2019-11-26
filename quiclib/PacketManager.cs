@@ -43,10 +43,10 @@ namespace quicsharp
             if (packet is LongHeaderPacket)
             {
                 LongHeaderPacket lhp = packet as LongHeaderPacket;
-                lhp.DCID_ = peerID_;
-                lhp.DCIDLength_ = (UInt32)peerID_.Length;
-                lhp.SCID_ = connID_;
-                lhp.SCIDLength_ = (UInt32)connID_.Length;
+                lhp.DCID = peerID_;
+                lhp.DCIDLength = (UInt32)peerID_.Length;
+                lhp.SCID = connID_;
+                lhp.SCIDLength = (UInt32)connID_.Length;
             }
             // The retry packets do not have a packet number
             if (!(packet is RetryPacket))

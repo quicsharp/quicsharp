@@ -19,7 +19,7 @@ namespace quicsharp
         public bool IsAckEliciting = false;
 
         // In bytes
-        protected static int packetHeaderSize_ = 4;
+        protected static int _packetHeaderSize = 4;
 
         /// <summary>
         /// Factory that creates the correct Packet type according to the payload
@@ -29,7 +29,7 @@ namespace quicsharp
         /// <returns>The decoded packet</returns>
         public static Packet Unpack(byte[] data)
         {
-            if (data.Length < packetHeaderSize_)
+            if (data.Length < _packetHeaderSize)
             {
                 throw new CorruptedPacketException("Wrong header size");
             }

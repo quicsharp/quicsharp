@@ -5,7 +5,7 @@ namespace quicsharp
     // QUIC IETF draft 17.3
     public class ShortHeaderPacket : Packet
     {
-        protected new static int packetHeaderSize_ = 9;
+        protected new static int _packetHeaderSize = 9;
         public bool Spin = false;
         public bool KeyPhase = false;
 
@@ -27,7 +27,7 @@ namespace quicsharp
         /// <returns>Number of bits read</returns>
         public override int Decode(byte[] data)
         {
-            if (data.Length < packetHeaderSize_)
+            if (data.Length < _packetHeaderSize)
                 throw new CorruptedPacketException("QUIC packet too small for a ShortHeaderPacket");
 
             /* 
@@ -50,8 +50,8 @@ namespace quicsharp
             Array.Copy(data, destinationConnectionIDBit_ / 8, DCID, 0, 4);
             PacketNumber = (uint)BitUtils.ReadNBytes(packetNumberBit_, data, PacketNumberLength);
 
-            Payload = new byte[data.Length - packetHeaderSize_];
-            Array.Copy(data, packetHeaderSize_, Payload, 0, Payload.Length);
+            Payload = new byte[data.Length - _packetHeaderSize];
+            Array.Copy(data, _packetHeaderSize, Payload, 0, Payload.Length);
 
             // TODO: fix this
             return 0;
@@ -64,7 +64,7 @@ namespace quicsharp
         public override byte[] Encode()
         {
             Payload = EncodeFrames();
-            byte[] packet = new byte[packetHeaderSize_ + Payload.Length];
+            byte[] packet = new byte[_packetHeaderSize + Payload.Length];
 
 
             BitUtils.WriteBit(0, packet, false);
@@ -106,7 +106,7 @@ namespace quicsharp
                     break;
             }
 
-            Payload.CopyTo(packet, packetHeaderSize_);
+            Payload.CopyTo(packet, _packetHeaderSize);
 
 
             return packet;

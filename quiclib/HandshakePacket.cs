@@ -47,7 +47,7 @@ namespace quicsharp
         public override int Decode(byte[] data)
         {
             int cursor = base.Decode(data);
-            if (packetType_ != 2)
+            if (PacketType != 2)
                 throw new CorruptedPacketException("Wrong packet type");
             ReservedBits = BitUtils.ReadNBits(reservedBitsIndex_, data, 2);
 

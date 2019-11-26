@@ -94,7 +94,7 @@ namespace quicsharp
                     else
                     {
                         packet = packet as LongHeaderPacket;
-                        byte[] DCID = (packet as LongHeaderPacket).DCID_;
+                        byte[] DCID = (packet as LongHeaderPacket).DCID;
                         Logger.Write($"Received packet with DCID {BitConverter.ToString(DCID)}");
 
                         QuicConnection connection = connectionPool_.Find(DCID);
@@ -139,14 +139,14 @@ namespace quicsharp
                 rng.GetBytes(connID);
             } while (connectionPool_.Find(connID) != null);
 
-            QuicConnection qc = new QuicConnection(server_, client, connID, incomingPacket.SCID_);
+            QuicConnection qc = new QuicConnection(server_, client, connID, incomingPacket.SCID);
             connectionPool_.AddConnection(qc, connID);
 
-            InitialPacket responsePacket = new InitialPacket(incomingPacket.SCID_, connID, 0);
+            InitialPacket responsePacket = new InitialPacket(incomingPacket.SCID, connID, 0);
             responsePacket.AddFrame(new PaddingFrame());
             byte[] b = responsePacket.Encode();
             server_.Send(b, b.Length, client);
-            Logger.Write($"Connection established. This is server {BitConverter.ToString(connID)} connected to client {BitConverter.ToString(incomingPacket.SCID_)}");
+            Logger.Write($"Connection established. This is server {BitConverter.ToString(connID)} connected to client {BitConverter.ToString(incomingPacket.SCID)}");
         }
 
         /// <summary>

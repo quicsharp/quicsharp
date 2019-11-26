@@ -12,7 +12,7 @@ namespace quicsharp
            +-+-+-+-+-+-+-+-+
            |1|1|T T|X X X X|
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-           |                         version_ (32)                          |
+           |                         Version (32)                          |
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
            | DCID Len (8)  |
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -25,21 +25,22 @@ namespace quicsharp
            |           Payload (depending on the type of the packet)     ...
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
-        protected new static int packetHeaderSize_ = 10;
-        protected static int maxCID_ = 20;
+        private new static int _packetHeaderSize = 10;
+        private uint _currentSupportedVersion => 0xff000017; // Only draft-23 is supported
 
-        public uint currentSupportedVersion_ => 0xff000017; // Only draft-23 is supported
+        protected static int MaxCID = 20;
+        protected uint PacketType;
 
-        public uint packetType_;
-        public uint version_;
-        public uint DCIDLength_;
-        public byte[] DCID_;
-        public uint SCIDLength_;
-        public byte[] SCID_;
+        public uint Version;
+        public uint DCIDLength;
+        public byte[] DCID;
+        public uint SCIDLength;
+        public byte[] SCID;
 
         private uint headerSizeInBytes()
         {
-            return 1 + 4 + 1 + DCIDLength_ + 1 + SCIDLength_;
+            // TODO: explanation
+            return 1 + 4 + 1 + DCIDLength + 1 + SCIDLength;
         }
 
         /// <summary>
@@ -49,50 +50,50 @@ namespace quicsharp
         /// <returns>Number of bits read</returns>
         public override int Decode(byte[] data)
         {
-            if (data.Length < packetHeaderSize_)
+            if (data.Length < _packetHeaderSize)
                 throw new CorruptedPacketException("QUIC packet too small for a LongHeaderPacket");
 
             // Read packet type
             int cursor = 2; // moving bit index
-            packetType_ = (uint)BitUtils.ReadNBits(cursor, data, 2);
+            PacketType = (uint)BitUtils.ReadNBits(cursor, data, 2);
             // Next 4 bits are packet specific and will be tended to in their own class.
             cursor += 6;
 
             // Read version
-            version_ = BitUtils.ReadUInt32(cursor, data);
+            Version = BitUtils.ReadUInt32(cursor, data);
             cursor += 32;
-            if (version_ != currentSupportedVersion_)
-                throw new NotImplementedException("Unsupported packet version_");
+            if (Version != _currentSupportedVersion)
+                throw new NotImplementedException("Unsupported packet Version");
 
             // Read DCID Len
-            DCIDLength_ = BitUtils.ReadByte(cursor, data);
-            if (DCIDLength_ > maxCID_)
+            DCIDLength = BitUtils.ReadByte(cursor, data);
+            if (DCIDLength > MaxCID)
                 // Section 17.2: Endpoints that receive
-                // a version_ 1 long header with a value larger than 20 MUST drop the
+                // a Version 1 long header with a value larger than 20 MUST drop the
                 // packet
                 // TODO: skip this when functioning in server mode
                 throw new CorruptedPacketException("DCID Len exceeded max value of 20");
             cursor += 8;
 
             // Read DCID
-            DCID_ = new byte[DCIDLength_];
-            Array.Copy(data, cursor / 8, DCID_, 0, DCIDLength_);
-            cursor += Convert.ToInt32(8 * DCIDLength_);
+            DCID = new byte[DCIDLength];
+            Array.Copy(data, cursor / 8, DCID, 0, DCIDLength);
+            cursor += Convert.ToInt32(8 * DCIDLength);
 
             // Read SCID Len
-            SCIDLength_ = BitUtils.ReadByte(cursor, data);
-            if (SCIDLength_ > maxCID_)
+            SCIDLength = BitUtils.ReadByte(cursor, data);
+            if (SCIDLength > MaxCID)
                 // Section 17.2: Endpoints that receive
-                // a version_ 1 long header with a value larger than 20 MUST drop the
+                // a Version 1 long header with a value larger than 20 MUST drop the
                 // packet
                 // TODO: skip this when functioning in server mode
                 throw new CorruptedPacketException("SCID Len exceeded max value of 20");
             cursor += 8;
 
             // Read SCID
-            SCID_ = new byte[SCIDLength_];
-            Array.Copy(data, cursor / 8, SCID_, 0, SCIDLength_);
-            cursor += Convert.ToInt32(8 * SCIDLength_);
+            SCID = new byte[SCIDLength];
+            Array.Copy(data, cursor / 8, SCID, 0, SCIDLength);
+            cursor += Convert.ToInt32(8 * SCIDLength);
 
             // TODO: read payload if applicable
             return cursor;
@@ -109,23 +110,23 @@ namespace quicsharp
             BitUtils.WriteBit(1, packet, true);
             int cursor = 8;
 
-            version_ = currentSupportedVersion_;
-            BitUtils.WriteUInt32(cursor, packet, version_);
+            Version = _currentSupportedVersion;
+            BitUtils.WriteUInt32(cursor, packet, Version);
             cursor += 32;
 
-            BitUtils.WriteNByteFromInt(cursor, packet, (uint)DCIDLength_, 1);
+            BitUtils.WriteNByteFromInt(cursor, packet, (uint)DCIDLength, 1);
             cursor += 8;
 
-            Array.Copy(DCID_, 0, packet, cursor / 8, DCIDLength_);
+            Array.Copy(DCID, 0, packet, cursor / 8, DCIDLength);
             // TODO: use a ulong for cursor
-            cursor += 8 * (int)DCIDLength_;
+            cursor += 8 * (int)DCIDLength;
 
-            BitUtils.WriteNByteFromInt(cursor, packet, (uint)SCIDLength_, 1);
+            BitUtils.WriteNByteFromInt(cursor, packet, (uint)SCIDLength, 1);
             cursor += 8;
 
-            Array.Copy(SCID_, 0, packet, cursor / 8, SCIDLength_);
+            Array.Copy(SCID, 0, packet, cursor / 8, SCIDLength);
             // TODO: use a ulong for cursor
-            cursor += 8 * (int)SCIDLength_;
+            cursor += 8 * (int)SCIDLength;
 
             // payload encoding is left to type-specific classes
             return packet;
