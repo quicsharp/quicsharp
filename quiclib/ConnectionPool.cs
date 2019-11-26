@@ -53,5 +53,15 @@ namespace quicsharp
 
             return _pool[strConnID];
         }
+
+        public List<QuicConnection> GetPool()
+        {
+            List<QuicConnection> list = new List<QuicConnection>();
+            foreach(KeyValuePair<string, QuicConnection> pair in _pool)
+            {
+                list.Add(pair.Value);
+            }
+            return list;
+        }
     }
 }

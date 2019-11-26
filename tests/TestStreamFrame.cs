@@ -16,7 +16,7 @@ namespace quicsharp.tests
             // Offset: 9d 7f 3e 7d = 494878333
 
             Frames.StreamFrame sf = new Frames.StreamFrame();
-            Assert.AreEqual(8 * 8, sf.Decode(b, 3));
+            Assert.AreEqual(8 * 8, sf.Decode(b, 3 * 8));
             Assert.AreEqual(sf._OFF, true);
             Assert.AreEqual(sf._LEN, false);
             Assert.AreEqual(sf._FIN, true);

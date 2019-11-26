@@ -98,7 +98,7 @@ namespace quicsharp.Frames
         {
             if (content.Length < (frameLengthBitsMini + begin) / 8)
                 throw new ArgumentException("ACK Frame has a wrong size");
-            if (content[begin] != Type)
+            if (content[begin / 8] != Type)
                 throw new ArgumentException("Wrong frame type created");
 
             int beginBits = begin;
@@ -114,7 +114,7 @@ namespace quicsharp.Frames
                 AckRanges.Add((new VariableLengthInteger(0), new VariableLengthInteger(0)));
                 read += AckRanges[AckRanges.Count - 1].Item1.Decode(beginBits + read, content);
                 read += AckRanges[AckRanges.Count - 1].Item2.Decode(beginBits + read, content);
-            }        
+            }
 
             read += ECT0.Decode(beginBits + read, content);
             read += ECT1.Decode(beginBits + read, content);

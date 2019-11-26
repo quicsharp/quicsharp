@@ -39,15 +39,16 @@ namespace Client
         public void Start()
         {
             client_ = new QuicClient();
-            Thread t = new Thread(new ThreadStart(ReceiveMessage));
-
-            t.Start();
 
             try
             {
                 client_.Connect("127.0.0.1", 8880);
 
                 stream_ = client_.CreateStream();
+                Thread t = new Thread(new ThreadStart(ReceiveMessage));
+
+                t.Start();
+
                 while (true)
                 {
                     Console.Write("# Your message: ");
@@ -72,13 +73,9 @@ namespace Client
 
         public void ReceiveMessage()
         {
-            byte[] buffer = new byte[512];
-
-            Console.WriteLine("Listening to messages...");
-
             while (true)
             {
-                Thread.Sleep(10000);
+                byte[] msg = stream_.Read();
 
                 int leftCursor = Console.CursorLeft;
                 int currentLineCursor = Console.CursorTop;
@@ -88,7 +85,7 @@ namespace Client
                 Console.Write(new string(' ', Console.WindowWidth));
                 Console.SetCursorPosition(0, currentLineCursor);
 
-                Console.WriteLine("--- New Message ---");
+                Console.WriteLine(System.Text.Encoding.UTF8.GetString(msg));
                 Console.SetCursorPosition(leftCursor, currentLineCursor + 1);
             }
         }

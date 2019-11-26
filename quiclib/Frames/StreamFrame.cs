@@ -63,11 +63,11 @@ namespace quicsharp.Frames
         /// <returns>The number of bits read</returns>
         public override int Decode(byte[] content, int begin)
         {
-            if (content.Length < 1 + begin)
+            if (content.Length < 1 + (begin / 8))
                 throw new ArgumentException();
 
 
-            _writableType = content[begin];
+            _writableType = content[begin / 8];
             if (Type < _minType || Type > _maxType)
                 throw new ArgumentException("Wrong frame type created");
 
@@ -75,7 +75,7 @@ namespace quicsharp.Frames
             _LEN = (Type & (1 << 1)) != 0;
             _FIN = (Type & (1 << 0)) != 0;
 
-            int cursor = begin + 1;
+            int cursor = (begin / 8) + 1;
 
             cursor += _streamID.Decode(cursor * 8, content) / 8;
 
@@ -97,7 +97,7 @@ namespace quicsharp.Frames
 
             // TODO: error handling if source packet is not long enough
             Array.Copy(content, cursor, Data, 0, Convert.ToInt32(_length.Value));
-            return (cursor + Convert.ToInt32(_length.Value) - begin) * 8;
+            return (cursor + Convert.ToInt32(_length.Value)) * 8 - begin;
         }
 
         /// <summary>

@@ -14,7 +14,7 @@ namespace quicsharp
     /// </summary>
     public class QuicConnection
     {
-        private IPEndPoint endpoint_;
+        public IPEndPoint Endpoint { get; private set; }
         private UdpClient socket_;
         private UInt64 lastStreamId_;
 
@@ -43,7 +43,7 @@ namespace quicsharp
         public QuicConnection(UdpClient socket, IPEndPoint endPoint, byte[] connID, byte[] peerID)
         {
             socket_ = socket;
-            endpoint_ = endPoint;
+            Endpoint = endPoint;
             streams_ = new Dictionary<UInt64, QuicStream>();
             packetManager_ = new PacketManager(connID, peerID);
             lastStreamId_ = 0;
@@ -63,9 +63,9 @@ namespace quicsharp
         /// <returns>The new stream</returns>
         public QuicStream CreateStream(byte type)
         {
-            lastStreamId_++;
             QuicStream stream = new QuicStream(this, new VariableLengthInteger(lastStreamId_), type);
             streams_.Add(lastStreamId_, stream);
+            lastStreamId_++;
 
             return stream;
         }
@@ -81,12 +81,23 @@ namespace quicsharp
             {
                 packet.DecodeFrames();
 
+
                 foreach (Frame frame in packet.Frames)
                 {
                     if (frame is StreamFrame)
                     {
                         StreamFrame sf = frame as StreamFrame;
-                        Logger.Write($"Received StreamFrame in packet #{packet.PacketNumber} with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
+                        Logger.Write($"Received StreamFrame in packet number {packet.PacketNumber} with message: {System.Text.Encoding.UTF8.GetString(sf.Data)}");
+                        QuicStream stream;
+                        try
+                        {
+                            stream = GetStream(sf._streamID.Value);
+                        }
+                        catch (ArgumentException e)
+                        {
+                            stream = CreateStream(0x00);
+                        }
+                        stream.AddFrameToRead(sf);
                     }
                     if (frame is AckFrame)
                     {
@@ -135,7 +146,7 @@ namespace quicsharp
 
                     // Simulate packet loss
                     if (rnd.Next(100) > PacketLossPercentage)
-                        socket_.Send(data, data.Length, endpoint_);
+                        socket_.Send(data, data.Length, Endpoint);
                     else
                         Logger.Write($"Packet #{packet.Key} not sent because of simulated packet loss");
                 }
@@ -160,13 +171,12 @@ namespace quicsharp
             int sent = 0;
             if (rnd.Next(100) > PacketLossPercentage)
             {
-                sent = socket_.Send(data, data.Length, endpoint_);
+                sent = socket_.Send(data, data.Length, Endpoint);
             }
             else
             {
                 Logger.Write($"Packet #{packet.PacketNumber} not sent because of simulated packet loss");
             }
-
             // If some bytes were sent
             return sent;
         }
@@ -178,7 +188,7 @@ namespace quicsharp
         /// <param name="frame">The frame to add</param>
         public void AddFrame(Frame frame)
         {
-            if (socket_ == null || endpoint_ == null)
+            if (socket_ == null || Endpoint == null)
                 throw new NullReferenceException();
             // TODO: only ShortHeaderPacket for now
             if (currentPacket_ == null)
@@ -213,6 +223,34 @@ namespace quicsharp
             if (!streams_.ContainsKey(id))
                 throw new ArgumentException($"The Quic Stream id {id} does not exist");
 
+            return streams_[id];
+        }
+
+        /// <summary>
+        /// Return the List of QuicStreams opened by the connection
+        /// </summary>
+        /// <returns></returns>
+        public List<QuicStream> GetStreams()
+        {
+            List<QuicStream> list = new List<QuicStream>();
+            foreach(KeyValuePair<ulong, QuicStream> item in streams_)
+            {
+                list.Add(item.Value);
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Get a specific stream, creates it if it does not exist yet
+        /// </summary>
+        /// <param name="id">The id of the stream wanted</param>
+        /// <returns></returns>
+        public QuicStream GetStreamOrCreate(ulong id)
+        {
+            while (!streams_.ContainsKey(id))
+            {
+                CreateStream(0x00);
+            }
             return streams_[id];
         }
     }

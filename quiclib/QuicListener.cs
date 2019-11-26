@@ -4,6 +4,8 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 
 using quicsharp.Frames;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace quicsharp
 {
@@ -15,9 +17,16 @@ namespace quicsharp
         private UdpClient server_;
         private bool started_;
 
+        private static UInt32 idCounter_ = 0;
+        private byte[] id_;
+
         public int Port { get; private set; }
 
         private ConnectionPool connectionPool_;
+
+        private Task receiveTask_;
+        private CancellationTokenSource receiveToken_;
+
 
         /// <summary>
         /// Create a server on a specific port
@@ -30,6 +39,11 @@ namespace quicsharp
             connectionPool_ = new ConnectionPool();
         }
 
+        ~QuicListener()
+        {
+            Close();
+        }
+
         /// <summary>
         /// Start the listener
         /// </summary>
@@ -37,6 +51,12 @@ namespace quicsharp
         {
             server_ = new UdpClient(Port);
             started_ = true;
+            id_ = BitConverter.GetBytes(idCounter_);
+            idCounter_++;
+
+            // Background task to receive packets from the remote server
+            receiveToken_ = new CancellationTokenSource();
+            receiveTask_ = Task.Run(() => Receive(), receiveToken_.Token);
         }
 
         /// <summary>
@@ -45,6 +65,7 @@ namespace quicsharp
         public void Close()
         {
             server_.Close();
+            receiveToken_.Cancel();
         }
 
         /// <summary>
@@ -57,41 +78,45 @@ namespace quicsharp
 
             IPEndPoint client = null;
 
-            try
+            while (!receiveToken_.IsCancellationRequested)
             {
                 // Listening
                 Packet packet = Packet.Unpack(server_.Receive(ref client));
                 Logger.Write($"Data received from server {client.Address}:{client.Port}");
 
-                if (packet is InitialPacket)
+                try
                 {
-                    HandleInitialPacket(packet as InitialPacket, client);
-                }
-                else
-                {
-                    packet = packet as LongHeaderPacket;
-                    byte[] DCID = (packet as LongHeaderPacket).DCID_;
-                    Logger.Write($"Received packet with DCID {BitConverter.ToString(DCID)}");
-
-                    QuicConnection connection = connectionPool_.Find(DCID);
-                    if (connection == null)
+                    // Listening
+                    if (packet is InitialPacket)
                     {
-                        Logger.Write($"No existing connection find for ID {BitConverter.ToString(DCID)}");
+                        HandleInitialPacket(packet as InitialPacket, client);
                     }
                     else
                     {
-                        connection.ReadPacket(packet);
+                        packet = packet as LongHeaderPacket;
+                        byte[] DCID = (packet as LongHeaderPacket).DCID_;
+                        Logger.Write($"Received packet with DCID {BitConverter.ToString(DCID)}");
+
+                        QuicConnection connection = connectionPool_.Find(DCID);
+                        if (connection == null)
+                        {
+                            Logger.Write($"No existing connection find for ID {BitConverter.ToString(DCID)}");
+                        }
+                        else
+                        {
+                            connection.ReadPacket(packet);
+                        }
                     }
                 }
-            }
-            catch (CorruptedPacketException e)
-            {
-                Logger.Write($"Received a corrupted QUIC packet {e.Message}");
-            }
-            catch (Exception e)
-            {
-                Logger.Write(e.Source);
-                throw e;
+                catch (CorruptedPacketException e)
+                {
+                    Logger.Write($"Received a corrupted QUIC packet {e.Message}");
+                }
+                catch (Exception e)
+                {
+                    Logger.Write(e.Source);
+                    throw e;
+                }
             }
         }
 
@@ -122,6 +147,15 @@ namespace quicsharp
             byte[] b = responsePacket.Encode();
             server_.Send(b, b.Length, client);
             Logger.Write($"Connection established. This is server {BitConverter.ToString(connID)} connected to client {BitConverter.ToString(incomingPacket.SCID_)}");
+        }
+
+        /// <summary>
+        /// Returns the ConnectionPool object
+        /// </summary>
+        /// <returns></returns>
+        public ConnectionPool getConnectionPool()
+        {
+            return connectionPool_;
         }
     }
 }

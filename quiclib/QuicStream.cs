@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Threading;
 using quicsharp.Frames;
 
 namespace quicsharp
@@ -11,8 +11,12 @@ namespace quicsharp
     public class QuicStream
     {
         private QuicConnection connection_;
+        private SortedList<UInt64, byte[]> _data = new SortedList<ulong, byte[]>();
+        private Queue<StreamFrame> _toRead = new Queue<StreamFrame>();
 
         private VariableLengthInteger streamId_ = new VariableLengthInteger(0);
+
+        private ManualResetEvent mre = new ManualResetEvent(false);
         public UInt64 StreamId
         {
             get
@@ -59,6 +63,31 @@ namespace quicsharp
 
             connection_.AddFrame(frame);
             connection_.SendCurrentPacket();
+        }
+
+        /// <summary>
+        /// Add a stream frame to the queue of frames to read
+        /// </summary>
+        /// <param name="sf">StreamFrame to be added to the queue</param>
+        public void AddFrameToRead(StreamFrame sf)
+        {
+            _toRead.Enqueue(sf);
+            mre.Set();
+        }
+
+        /// <summary>
+        /// Return the byte array corresponding to the data from the next frame to be read
+        /// </summary>
+        /// <returns></returns>
+        public byte[] Read()
+        {
+            mre.WaitOne();
+            StreamFrame frame = _toRead.Dequeue();
+            if (_toRead.Count == 0)
+            {
+                mre.Reset();
+            }
+            return frame.Data;
         }
     }
 }

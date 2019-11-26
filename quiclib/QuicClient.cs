@@ -37,6 +37,11 @@ namespace quicsharp
             Connected = false;
         }
 
+        ~QuicClient()
+        {
+            Close();
+        }
+
         /// <summary>
         /// Connect to a remote server.
         /// </summary>
