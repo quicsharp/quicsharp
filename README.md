@@ -16,7 +16,7 @@ Let's launch both and have the client initiate a connection to the server:
 
 ![Connection establishment](media/connection-establishment.gif)
 
-N.B.: In the client sample, to quicsharp logs are now written in a seperate log file, but in the server sample they are still printed in the console.
+> N.B.: after this capture was taken, `sample/Client` was updated and now sends log lines to a file (to avoid conflicts with user input in the console). Server logs are still printed in the console.
 
 Using Wireshark, we can see that two packets were transmitted: one from the client to the server to initiate the connection, and a response from the server.
 
@@ -106,7 +106,7 @@ cd sample/Client
 dotnet run .
 ```
 
-If you want to inspect the transmitted packets, you can install a development build of Wireshark. See [about-wireshark] below.
+If you want to inspect the transmitted packets, you can install a development build of Wireshark. See _[About Wireshark](about-wireshark)_ below.
 
 ### Running unit tests
 
