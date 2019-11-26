@@ -91,7 +91,7 @@ namespace quicsharp
                         QuicStream stream;
                         try
                         {
-                            stream = GetStream(sf._streamID.Value);
+                            stream = GetStream(sf.StreamID.Value);
                         }
                         catch (ArgumentException e)
                         {

@@ -17,11 +17,11 @@ namespace quicsharp.tests
 
             Frames.StreamFrame sf = new Frames.StreamFrame();
             Assert.AreEqual(8 * 8, sf.Decode(b, 3 * 8));
-            Assert.AreEqual(sf._OFF, true);
-            Assert.AreEqual(sf._LEN, false);
-            Assert.AreEqual(sf._FIN, true);
-            Assert.AreEqual(sf._streamID.Value, Convert.ToUInt64(37));
-            Assert.AreEqual(sf._offset.Value, Convert.ToUInt64(494878333));
+            Assert.AreEqual(sf.OFF, true);
+            Assert.AreEqual(sf.LEN, false);
+            Assert.AreEqual(sf.FIN, true);
+            Assert.AreEqual(sf.StreamID.Value, Convert.ToUInt64(37));
+            Assert.AreEqual(sf.Offset.Value, Convert.ToUInt64(494878333));
             CollectionAssert.AreEqual(sf.Data, new byte[] { 0x42 });
         }
 
@@ -56,11 +56,11 @@ namespace quicsharp.tests
             Frames.StreamFrame recvsf = new Frames.StreamFrame();
             recvsf.Decode(result, 0);
 
-            Assert.AreEqual(recvsf._OFF, true);
-            Assert.AreEqual(recvsf._LEN, true);
-            Assert.AreEqual(recvsf._FIN, isEndOfStream);
-            Assert.AreEqual(recvsf._streamID.Value, Convert.ToUInt64(15293));
-            Assert.AreEqual(recvsf._offset.Value, Convert.ToUInt64(494878333));
+            Assert.AreEqual(recvsf.OFF, true);
+            Assert.AreEqual(recvsf.LEN, true);
+            Assert.AreEqual(recvsf.FIN, isEndOfStream);
+            Assert.AreEqual(recvsf.StreamID.Value, Convert.ToUInt64(15293));
+            Assert.AreEqual(recvsf.Offset.Value, Convert.ToUInt64(494878333));
             CollectionAssert.AreEqual(recvsf.Data, new byte[] { 0x42, 0x43 });
         }
     }

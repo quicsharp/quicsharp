@@ -10,9 +10,6 @@ namespace quicsharp.Frames
     /// </summary>
     public class StreamFrame : Frame
     {
-        private byte _minType => 0x08;
-        private byte _maxType => 0x0f;
-
         // +---------------------+
         // | Frame type (8 bits) |
         // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -24,33 +21,37 @@ namespace quicsharp.Frames
         // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         // |                    Stream Data (*)                         ...
         // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-        public VariableLengthInteger _streamID = new VariableLengthInteger(0);
-        public VariableLengthInteger _offset = new VariableLengthInteger(0);
-        public VariableLengthInteger _length = new VariableLengthInteger(0);
+
+        public override byte Type { get { return _writableType; } }
         public byte[] Data { get; private set; }
 
         // Frame type bits indicate the presence of the fields
-        public bool _OFF; // bit 0x04
-        public bool _LEN; // bit 0x02
-        public bool _FIN; // bit 0x01
+        public bool OFF; // bit 0x04
+        public bool LEN; // bit 0x02
+        public bool FIN; // bit 0x01
 
-        public byte _writableType;
-        public override byte Type { get { return _writableType; } }
+        public VariableLengthInteger StreamID = new VariableLengthInteger(0);
+        public VariableLengthInteger Offset = new VariableLengthInteger(0);
+        private VariableLengthInteger _length = new VariableLengthInteger(0);
+
+        private byte _writableType;
+        private byte _minType => 0x08;
+        private byte _maxType => 0x0f;
 
         public StreamFrame() { }
 
         public StreamFrame(UInt64 streamID, UInt64 offset, byte[] data, bool isLastFrameOfPacket, bool isEndOfStream)
         {
-            _streamID = new VariableLengthInteger(streamID);
+            StreamID = new VariableLengthInteger(streamID);
 
-            _OFF = offset != 0;
-            _offset = new VariableLengthInteger(offset);
+            OFF = offset != 0;
+            Offset = new VariableLengthInteger(offset);
 
-            _LEN = !isLastFrameOfPacket;
+            LEN = !isLastFrameOfPacket;
             _length = new VariableLengthInteger(data.Length);
 
-            _FIN = isEndOfStream;
-            _writableType = Convert.ToByte(0b00001000 + (_OFF ? (1 << 2) : 0) + (_LEN ? (1 << 1) : 0) + (_FIN ? (1 << 0) : 0));
+            FIN = isEndOfStream;
+            _writableType = Convert.ToByte(0b00001000 + (OFF ? (1 << 2) : 0) + (LEN ? (1 << 1) : 0) + (FIN ? (1 << 0) : 0));
 
             Data = data;
         }
@@ -71,20 +72,20 @@ namespace quicsharp.Frames
             if (Type < _minType || Type > _maxType)
                 throw new ArgumentException("Wrong frame type created");
 
-            _OFF = (Type & (1 << 2)) != 0;
-            _LEN = (Type & (1 << 1)) != 0;
-            _FIN = (Type & (1 << 0)) != 0;
+            OFF = (Type & (1 << 2)) != 0;
+            LEN = (Type & (1 << 1)) != 0;
+            FIN = (Type & (1 << 0)) != 0;
 
             int cursor = (begin / 8) + 1;
 
-            cursor += _streamID.Decode(cursor * 8, content) / 8;
+            cursor += StreamID.Decode(cursor * 8, content) / 8;
 
-            if (_OFF)
+            if (OFF)
             {
-                cursor += _offset.Decode(cursor * 8, content) / 8;
+                cursor += Offset.Decode(cursor * 8, content) / 8;
             }
 
-            if (_LEN)
+            if (LEN)
             {
                 cursor += _length.Decode(cursor * 8, content) / 8;
             }
@@ -108,10 +109,10 @@ namespace quicsharp.Frames
         {
             List<byte> content = new List<byte>();
             content.Add(Type);
-            content.AddRange(_streamID.Encode());
-            if (_OFF)
-                content.AddRange(_offset.Encode());
-            if (_LEN)
+            content.AddRange(StreamID.Encode());
+            if (OFF)
+                content.AddRange(Offset.Encode());
+            if (LEN)
                 content.AddRange(_length.Encode());
             content.AddRange(Data);
 
