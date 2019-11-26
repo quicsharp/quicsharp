@@ -82,29 +82,10 @@ namespace quicsharp
             // TODO: Write N bits
             BitUtils.WriteUInt32(_packetNumberBit, packet, Convert.ToUInt32(PacketNumber));
 
-            switch (PacketNumberLength - 1)
-            {
-                case 0:
-                    BitUtils.WriteBit(6, packet, false);
-                    BitUtils.WriteBit(7, packet, false);
-                    BitUtils.WriteNByteFromInt(_packetNumberBit, packet, PacketNumber, 1);
-                    break;
-                case 1:
-                    BitUtils.WriteBit(6, packet, false);
-                    BitUtils.WriteBit(7, packet, true);
-                    BitUtils.WriteNByteFromInt(_packetNumberBit, packet, PacketNumber, 2);
-                    break;
-                case 2:
-                    BitUtils.WriteBit(6, packet, true);
-                    BitUtils.WriteBit(7, packet, false);
-                    BitUtils.WriteNByteFromInt(_packetNumberBit, packet, PacketNumber, 3);
-                    break;
-                case 3:
-                    BitUtils.WriteBit(6, packet, true);
-                    BitUtils.WriteBit(7, packet, true);
-                    BitUtils.WriteNByteFromInt(_packetNumberBit, packet, PacketNumber, 4);
-                    break;
-            }
+            // The 2 first bits for the packet number length
+            BitUtils.WriteNBits(_packetLengthBit, packet, new bool[] { PacketNumberLength > 2, PacketNumberLength % 2 == 0 });
+            // The other for the packet number itself
+            BitUtils.WriteNByteFromInt(_packetNumberBit, packet, PacketNumber, (int)PacketNumberLength);
 
             Payload.CopyTo(packet, _packetHeaderSize);
 
