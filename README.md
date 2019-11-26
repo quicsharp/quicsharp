@@ -112,7 +112,7 @@ cd sample/Client
 dotnet run .
 ```
 
-If you want to inspect the transmitted packets, you can install a development build of Wireshark. See _[About Wireshark](about-wireshark)_ below.
+If you want to inspect the transmitted packets, you can install a development build of Wireshark. See _[About Wireshark](#about-wireshark)_ below.
 
 ### Running unit tests
 
