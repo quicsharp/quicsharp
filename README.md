@@ -52,7 +52,7 @@ The spec requires that the Initial packet contains, in the payload, a CRYPTO fra
 ### Server -> client initial packet
 
 In its response, as the spec requires, the server kept the SCID provided by the client and used it as DCID.
-It also picks a new, random SCID that the client will use in subsequent interactions.
+It also picks a new, random SCID that the client will use as DCID in subsequent interactions.
 
 ![Inspection of second packet](media/wireshark-packet-2.png)
 
