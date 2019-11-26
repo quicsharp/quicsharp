@@ -14,18 +14,12 @@ namespace quicsharp
     /// </summary>
     public class QuicListener
     {
-        private UdpClient server_;
-        private bool started_;
-
-        private static UInt32 idCounter_ = 0;
-        private byte[] id_;
-
-        public int Port { get; private set; }
-
-        private ConnectionPool connectionPool_;
-
-        private Task receiveTask_;
-        private CancellationTokenSource receiveToken_;
+        private int _port;
+        private UdpClient _server;
+        private bool _started;
+        private ConnectionPool _connectionPool;
+        private Task _receiveTask;
+        private CancellationTokenSource _receiveToken;
 
 
         /// <summary>
@@ -34,9 +28,9 @@ namespace quicsharp
         /// <param name="port">The port to listen to</param>
         public QuicListener(int port)
         {
-            started_ = false;
-            Port = port;
-            connectionPool_ = new ConnectionPool();
+            _started = false;
+            _port = port;
+            _connectionPool = new ConnectionPool();
         }
 
         ~QuicListener()
@@ -49,14 +43,12 @@ namespace quicsharp
         /// </summary>
         public void Start()
         {
-            server_ = new UdpClient(Port);
-            started_ = true;
-            id_ = BitConverter.GetBytes(idCounter_);
-            idCounter_++;
+            _server = new UdpClient(_port);
+            _started = true;
 
             // Background task to receive packets from the remote server
-            receiveToken_ = new CancellationTokenSource();
-            receiveTask_ = Task.Run(() => Receive(), receiveToken_.Token);
+            _receiveToken = new CancellationTokenSource();
+            _receiveTask = Task.Run(() => Receive(), _receiveToken.Token);
         }
 
         /// <summary>
@@ -64,8 +56,8 @@ namespace quicsharp
         /// </summary>
         public void Close()
         {
-            server_.Close();
-            receiveToken_.Cancel();
+            _server.Close();
+            _receiveToken.Cancel();
         }
 
         /// <summary>
@@ -73,15 +65,15 @@ namespace quicsharp
         /// </summary>
         public void Receive()
         {
-            if (!started_)
+            if (!_started)
                 throw new InvalidOperationException("QuicListener is not started but is waiting for packets");
 
             IPEndPoint client = null;
 
-            while (!receiveToken_.IsCancellationRequested)
+            while (!_receiveToken.IsCancellationRequested)
             {
                 // Listening
-                Packet packet = Packet.Unpack(server_.Receive(ref client));
+                Packet packet = Packet.Unpack(_server.Receive(ref client));
                 Logger.Write($"Data received from server {client.Address}:{client.Port}");
 
                 try
@@ -97,7 +89,7 @@ namespace quicsharp
                         byte[] DCID = (packet as LongHeaderPacket).DCID;
                         Logger.Write($"Received packet with DCID {BitConverter.ToString(DCID)}");
 
-                        QuicConnection connection = connectionPool_.Find(DCID);
+                        QuicConnection connection = _connectionPool.Find(DCID);
                         if (connection == null)
                         {
                             Logger.Write($"No existing connection find for ID {BitConverter.ToString(DCID)}");
@@ -137,15 +129,15 @@ namespace quicsharp
             {
                 RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
                 rng.GetBytes(connID);
-            } while (connectionPool_.Find(connID) != null);
+            } while (_connectionPool.Find(connID) != null);
 
-            QuicConnection qc = new QuicConnection(server_, client, connID, incomingPacket.SCID);
-            connectionPool_.AddConnection(qc, connID);
+            QuicConnection qc = new QuicConnection(_server, client, connID, incomingPacket.SCID);
+            _connectionPool.AddConnection(qc, connID);
 
             InitialPacket responsePacket = new InitialPacket(incomingPacket.SCID, connID, 0);
             responsePacket.AddFrame(new PaddingFrame());
             byte[] b = responsePacket.Encode();
-            server_.Send(b, b.Length, client);
+            _server.Send(b, b.Length, client);
             Logger.Write($"Connection established. This is server {BitConverter.ToString(connID)} connected to client {BitConverter.ToString(incomingPacket.SCID)}");
         }
 
@@ -155,7 +147,7 @@ namespace quicsharp
         /// <returns></returns>
         public ConnectionPool getConnectionPool()
         {
-            return connectionPool_;
+            return _connectionPool;
         }
     }
 }

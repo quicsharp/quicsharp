@@ -31,7 +31,7 @@ namespace quicsharp
         private CancellationTokenSource _resendToken;
 
         // Delay, in milliseconds, at the end of which a packet is considered lost and to be sent again
-        static private int _ackDelay = 1000;
+        static private int _ackDelay => 1000;
 
         /// <summary>
         /// Create the QUIC connection information
