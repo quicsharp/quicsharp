@@ -141,6 +141,8 @@ See the [Wireshark / QUIC compatibility chart](https://github.com/quicwg/base-dr
 
 The screenshots were made using Wireshark 3.1.1rc0-492-g179901c269a7.
 
+A dump of the captured data that can be opened with Wireshark is available [here](media/packet-capture.pcapng).
+
 ### Appendix
 
 Command used to make the GIFs in this README (from .mov files):
