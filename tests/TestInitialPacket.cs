@@ -61,10 +61,9 @@ namespace quicsharp.tests
             Assert.AreEqual((UInt32)17, recP.SCIDLength);
             CollectionAssert.AreEqual((new HexData("56221f7eed93c8ea78b87c0c80a55c60c6")).bytes, recP.SCID);
 
-            // Something shady is going on with packet number length.
             // Wireshark translates the initial 0xCF to 0b11000000 while our code translates it to 0b11001111
-            // Might be related to header protection? Not sure there is header protection for the initial packet
-            // TODO: fix this
+            // Likely because of header protection, which we cannot have without QUIC-TLS
+            // PacketNumberLength and PacketNumber thus cannot be computed correctly
             // Assert.AreEqual((UInt32)1, recP.PacketNumberLength); 
             // Assert.AreEqual((UInt32)0, recP.PacketNumber);
             Assert.AreEqual((UInt64)0, recP.TokenLength.Value);

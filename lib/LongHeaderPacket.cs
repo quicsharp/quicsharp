@@ -40,7 +40,12 @@ namespace quicsharp
 
         private uint headerSizeInBytes()
         {
-            // TODO: explanation
+            // 1 byte for fixed bits + packet type + type-specific bits
+            // 4 bytes for version
+            // 1 byte for DCID Len
+            // DCIDLength bytes for DCID
+            // 1 byte for SCID Len
+            // SCIDLength bytes for SCID
             return 1 + 4 + 1 + DCIDLength + 1 + SCIDLength;
         }
 

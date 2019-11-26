@@ -55,8 +55,7 @@ namespace quicsharp.tests
             Assert.AreEqual((UInt32)20, recP.SCIDLength);
             CollectionAssert.AreEqual((new HexData("5e1178e63dd8e8da9f9c637dd95b03413c82cd8c")).bytes, recP.SCID);
 
-            // Something shady is going on with packet number length. See TestInitialPacket
-            // TODO: fix this
+            // PacketNumberLength and PacketNumber cannot be computed correctly: see TestInitialPacket
             // Assert.AreEqual((UInt32)1, recP.PacketNumberLength); 
             // Assert.AreEqual((UInt32)111, recP.PacketNumber);
             Assert.AreEqual((UInt64)142, recP.Length.Value);

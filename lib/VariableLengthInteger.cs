@@ -84,7 +84,6 @@ namespace quicsharp
         /// <returns>The number of bits read</returns>
         public int Decode(int indexBegin, byte[] data)
         {
-            // TODO: Check input
             Size = 0;
 
             switch (BitUtils.ReadNBits(indexBegin, data, 2))
