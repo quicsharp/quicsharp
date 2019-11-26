@@ -16,6 +16,8 @@ Let's launch both and have the client initiate a connection to the server:
 
 ![Connection establishment](media/connection-establishment.gif)
 
+N.B.: In the client sample, to quicsharp logs are now written in a seperate log file, but in the server sample they are still printed in the console.
+
 Using Wireshark, we can see that two packets were transmitted: one from the client to the server to initiate the connection, and a response from the server.
 
 ![Overview of transmitted packets](media/wireshark-overview-1.png)
