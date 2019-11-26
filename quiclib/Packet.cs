@@ -18,8 +18,7 @@ namespace quicsharp
         // If it has a frame different from PingFrame or AckFrame
         public bool IsAckEliciting = false;
 
-        // In bytes
-        protected static int _packetHeaderSize = 4;
+        private static int _packetHeaderSize = 4; // In bytes
 
         /// <summary>
         /// Factory that creates the correct Packet type according to the payload

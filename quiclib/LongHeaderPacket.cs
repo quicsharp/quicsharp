@@ -31,11 +31,12 @@ namespace quicsharp
         public byte[] DCID;
         public uint SCIDLength;
         public byte[] SCID;
-        private new static int _packetHeaderSize = 10;
-        private uint _currentSupportedVersion => 0xff000017; // Only draft-23 is supported
 
         protected static int MaxCID = 20;
         protected uint PacketType;
+
+        private new static int _packetHeaderSize = 10;
+        private uint _currentSupportedVersion => 0xff000017; // Only draft-23 is supported
 
         private uint headerSizeInBytes()
         {

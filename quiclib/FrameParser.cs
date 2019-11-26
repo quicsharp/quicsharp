@@ -11,15 +11,15 @@ namespace quicsharp
     class FrameParser
     {
         /// <summary>
-        /// The payload containing the frames
-        /// </summary>
-        private byte[] content_;
-
-        /// <summary>
         /// An ack eliciting packet is a packet that contains at least one frame that is not a PingFrame or an AckFrame
         /// Section 13
         /// </summary>
         public bool IsAckEliciting = false;
+
+        /// <summary>
+        /// The payload containing the frames
+        /// </summary>
+        private byte[] _content;
 
         /// <summary>
         /// Creates the parser and initiate the payload to decode
@@ -27,8 +27,8 @@ namespace quicsharp
         /// <param name="content">The content of the payload that contains the frames</param>
         public FrameParser(byte[] content)
         {
-            content_ = new byte[content.Length];
-            Array.Copy(content, content_, content.Length);
+            _content = new byte[content.Length];
+            Array.Copy(content, _content, content.Length);
         }
 
         /// <summary>
@@ -37,14 +37,14 @@ namespace quicsharp
         /// <returns>The list of the decoded frames</returns>
         public List<Frame> GetFrames()
         {
-            if (content_.Length < 1)
+            if (_content.Length < 1)
                 throw new ArgumentException("Corrupted frame");
 
             List<Frame> results = new List<Frame>();
-            byte frameType = content_[0];
+            byte frameType = _content[0];
             int i = 0;
 
-            while (i < content_.Length * 8)
+            while (i < _content.Length * 8)
             {
                 switch (frameType)
                 {
@@ -98,7 +98,7 @@ namespace quicsharp
 
                 if (results[results.Count - 1] != null)
                 {
-                    i += results[results.Count - 1].Decode(content_, i);
+                    i += results[results.Count - 1].Decode(_content, i);
                 }
             }
 
