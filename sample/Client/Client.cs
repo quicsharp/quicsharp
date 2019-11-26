@@ -28,13 +28,13 @@ namespace Client
 
     class Client
     {
-        private QuicClient client_;
-        private QuicStream stream_;
-        private string username_;
+        private QuicClient _client;
+        private QuicStream _stream;
+        private string _username;
 
         public Client(string username)
         {
-            username_ = username;
+            _username = username;
             // Write the quicsharp logs in an external file
             Logger.StreamOutput = File.AppendText("log_" + DateTime.Now.ToFileTime() + ".txt");
             Logger.StreamOutput.AutoFlush = true;
@@ -42,13 +42,13 @@ namespace Client
 
         public void Start()
         {
-            client_ = new QuicClient();
+            _client = new QuicClient();
 
             try
             {
-                client_.Connect("127.0.0.1", 8880);
+                _client.Connect("127.0.0.1", 8880);
 
-                stream_ = client_.CreateStream();
+                _stream = _client.CreateStream();
                 Thread t = new Thread(new ThreadStart(ReceiveMessage));
 
                 t.Start();
@@ -57,7 +57,7 @@ namespace Client
                 {
                     Console.Write("# Your message: ");
                     string input = Console.ReadLine();
-                    string str = username_ + ": " + input;
+                    string str = _username + ": " + input;
                     int currentLineCursor = Console.CursorTop - 1;
                     Console.SetCursorPosition(0, Console.CursorTop - 1);
                     Console.Write(new string(' ', Console.WindowWidth));
@@ -65,7 +65,7 @@ namespace Client
                     Console.WriteLine("You: " + input);
 
                     byte[] b = System.Text.Encoding.UTF8.GetBytes(str);
-                    stream_.Write(b, 0, b.Length);
+                    _stream.Write(b, 0, b.Length);
                 }
             }
             catch (Exception e)
@@ -75,11 +75,11 @@ namespace Client
             }
         }
 
-        public void ReceiveMessage()
+        private void ReceiveMessage()
         {
             while (true)
             {
-                byte[] msg = stream_.Read();
+                byte[] msg = _stream.Read();
 
                 int leftCursor = Console.CursorLeft;
                 int currentLineCursor = Console.CursorTop;
