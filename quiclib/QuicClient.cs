@@ -14,27 +14,23 @@ namespace quicsharp
     /// </summary>
     public class QuicClient
     {
-        private UdpClient client_;
-        private UInt32 packetNumber_;
+        private List<Frame> _awaitingFrames = new List<Frame>();
+
+        private static Mutex _mutex = new Mutex();
+        private UdpClient _client;
+        private UInt32 _packetNumber;
 
         // Connection to the QUIC server
-        private QuicConnection connection_;
-
-        public bool Connected;
-
-        public static Mutex mutex = new Mutex();
-
-        public List<Frame> awaitingFrames = new List<Frame>();
+        private QuicConnection _connection;
 
         // Tasks to receive the quic packets in background
-        private Task receiveTask_;
-        private CancellationTokenSource receiveToken_;
+        private Task _receiveTask;
+        private CancellationTokenSource _receiveToken;
 
         public QuicClient()
         {
-            client_ = new UdpClient();
-            packetNumber_ = 0;
-            Connected = false;
+            _client = new UdpClient();
+            _packetNumber = 0;
         }
 
         ~QuicClient()
@@ -57,13 +53,13 @@ namespace quicsharp
             rng.GetBytes(SCID);
 
             // Create and send an InitialPacket to open a connection with the remote server
-            InitialPacket initialPacket = new InitialPacket(DCID, SCID, packetNumber_++);
+            InitialPacket initialPacket = new InitialPacket(DCID, SCID, _packetNumber++);
 
             byte[] byteInitialPacket = initialPacket.Encode();
-            client_.Send(byteInitialPacket, byteInitialPacket.Length, ip, port);
+            _client.Send(byteInitialPacket, byteInitialPacket.Length, ip, port);
 
             IPEndPoint server = null;
-            Packet packet = Packet.Unpack(client_.Receive(ref server));
+            Packet packet = Packet.Unpack(_client.Receive(ref server));
 
             // Start the connection with an InitialPacket
             if (packet.GetType() == typeof(InitialPacket))
@@ -72,14 +68,13 @@ namespace quicsharp
                 Logger.Write($"Data received from server {server.Address}:{server.Port}");
 
                 InitialPacket initPack = packet as InitialPacket;
-                Logger.Write($"Connection established. This is client {BitConverter.ToString(initPack.DCID_)} connected to server {BitConverter.ToString(initPack.SCID_)}");
-                connection_ = new QuicConnection(client_, server, initPack.DCID_, initPack.SCID_);
-                Connected = true;
+                Logger.Write($"Connection established. This is client {BitConverter.ToString(initPack.DCID)} connected to server {BitConverter.ToString(initPack.SCID)}");
+                _connection = new QuicConnection(_client, server, initPack.DCID, initPack.SCID);
             }
 
             // Background task to receive packets from the remote server
-            receiveToken_ = new CancellationTokenSource();
-            receiveTask_ = Task.Run(() => Receive(server), receiveToken_.Token);
+            _receiveToken = new CancellationTokenSource();
+            _receiveTask = Task.Run(() => Receive(server), _receiveToken.Token);
         }
 
         /// <summary>
@@ -88,13 +83,13 @@ namespace quicsharp
         /// <param name="endpoint">QUIC endpoint</param>
         private void Receive(IPEndPoint endpoint)
         {
-            while (!receiveToken_.IsCancellationRequested)
+            while (!_receiveToken.IsCancellationRequested)
             {
-                Packet packet = Packet.Unpack(client_.Receive(ref endpoint));
-                connection_.ReadPacket(packet);
-                mutex.WaitOne();
-                awaitingFrames.AddRange(packet.Frames);
-                mutex.ReleaseMutex();
+                Packet packet = Packet.Unpack(_client.Receive(ref endpoint));
+                _connection.ReadPacket(packet);
+                _mutex.WaitOne();
+                _awaitingFrames.AddRange(packet.Frames);
+                _mutex.ReleaseMutex();
             }
         }
 
@@ -103,9 +98,8 @@ namespace quicsharp
         /// </summary>
         public void Close()
         {
-            client_.Close();
-            Connected = false;
-            receiveToken_.Cancel();
+            _client.Close();
+            _receiveToken.Cancel();
         }
 
         /// <summary>
@@ -116,7 +110,7 @@ namespace quicsharp
         public QuicStream CreateStream()
         {
             // TODO: choose a stream type
-            return connection_.CreateStream(0);
+            return _connection.CreateStream(0);
         }
     }
 }

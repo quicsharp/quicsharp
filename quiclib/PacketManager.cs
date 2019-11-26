@@ -12,26 +12,26 @@ namespace quicsharp
     /// </summary>
     public class PacketManager
     {
-        // Section 12.3
-        private UInt32 packetNumber_ = 0;
-
-        // connID = connection ID = DCID of incoming packets, SCID of outgoing packets
-        // peerID = DCID of outgoing packets, SCID of incoming packets
-        public byte[] connID_ = new byte[] { };
-        public byte[] peerID_ = new byte[] { };
-
         // Used to prevent race exception when sending packet again
         public Mutex HistoryMutex = new Mutex();
         public Dictionary<UInt32, Packet> History = new Dictionary<UInt32, Packet>();
+
+        // connID = connection ID = DCID of incoming packets, SCID of outgoing packets
+        // peerID = DCID of outgoing packets, SCID of incoming packets
+        private byte[] _connID = new byte[] { };
+        private byte[] _peerID = new byte[] { };
+
+        // Section 12.3
+        private UInt32 _packetNumber = 0;
         /// <summary>
         /// Received packets numbers. Used not to process the same packet twice. 
         /// </summary>
-        private Dictionary<UInt32, bool> received_ = new Dictionary<UInt32, bool>();
+        private Dictionary<UInt32, bool> _received = new Dictionary<UInt32, bool>();
 
         public PacketManager(byte[] connID, byte[] peerID)
         {
-            connID_ = connID;
-            peerID_ = peerID;
+            _connID = connID;
+            _peerID = peerID;
         }
 
         /// <summary>
@@ -43,15 +43,15 @@ namespace quicsharp
             if (packet is LongHeaderPacket)
             {
                 LongHeaderPacket lhp = packet as LongHeaderPacket;
-                lhp.DCID_ = peerID_;
-                lhp.DCIDLength_ = (UInt32)peerID_.Length;
-                lhp.SCID_ = connID_;
-                lhp.SCIDLength_ = (UInt32)connID_.Length;
+                lhp.DCID = _peerID;
+                lhp.DCIDLength = (UInt32)_peerID.Length;
+                lhp.SCID = _connID;
+                lhp.SCIDLength = (UInt32)_connID.Length;
             }
             // The retry packets do not have a packet number
             if (!(packet is RetryPacket))
             {
-                packet.PacketNumber = ++packetNumber_;
+                packet.PacketNumber = ++_packetNumber;
                 Register(packet, packet.PacketNumber);
             }
         }
@@ -96,10 +96,10 @@ namespace quicsharp
             if (packet is RetryPacket)
                 return true;
 
-            if (received_.ContainsKey(packet.PacketNumber))
+            if (_received.ContainsKey(packet.PacketNumber))
                 return true;
 
-            received_.Add(packet.PacketNumber, true);
+            _received.Add(packet.PacketNumber, true);
             return false;
         }
 

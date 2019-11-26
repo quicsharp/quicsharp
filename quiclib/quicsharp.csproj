@@ -4,4 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>C:\Users\paulc\Documents\Centrale\OSY\POOA\Code\quicsharp\doc\</OutputPath>
+    <DocumentationFile>C:\Users\paulc\Documents\Centrale\OSY\POOA\Code\Quicsharp\quiclib\quicsharp.xml</DocumentationFile>
+  </PropertyGroup>
+
 </Project>

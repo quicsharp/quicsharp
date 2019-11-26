@@ -43,12 +43,12 @@ namespace quicsharp
         public override int Decode(byte[] data)
         {
             int cursor = base.Decode(data);
-            if (packetType_ != 3)
+            if (PacketType != 3)
                 throw new CorruptedPacketException("Wrong packet type");
 
             // Read ODCID Len
             ODCIDLength = BitUtils.ReadByte(cursor, data);
-            if (ODCIDLength > maxCID_)
+            if (ODCIDLength > MaxCID)
                 // Section 17.2: Endpoints that receive
                 // a version 1 long header with a value larger than 20 MUST drop the
                 // packet

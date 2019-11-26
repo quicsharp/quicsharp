@@ -10,7 +10,7 @@ namespace quicsharp
     {
         public int Size { get; private set; } // Number of bits
 
-        private UInt64 value_;
+        private UInt64 _value;
 
         /// <summary>
         /// The value setter also modify the size of the integer.
@@ -19,12 +19,12 @@ namespace quicsharp
         {
             get
             {
-                return value_;
+                return _value;
             }
 
             set
             {
-                value_ = value;
+                _value = value;
                 if (value >= (1 << 30))
                 {
                     Size = 64;
@@ -65,7 +65,7 @@ namespace quicsharp
             BitUtils.WriteBit(0, encoded, Size >= 32);
             BitUtils.WriteBit(1, encoded, Size == 16 || Size == 64);
 
-            UInt64 v = value_;
+            UInt64 v = _value;
 
             for (int i = (encoded.Length * 8) - 1; i > 1; i--)
             {
@@ -91,19 +91,19 @@ namespace quicsharp
             {
                 case 0:
                     Size = 8;
-                    value_ = BitUtils.ReadNBits(indexBegin + 2, data, 6);
+                    _value = BitUtils.ReadNBits(indexBegin + 2, data, 6);
                     break;
                 case 1:
                     Size = 16;
-                    value_ = BitUtils.ReadNBits(indexBegin + 2, data, 14);
+                    _value = BitUtils.ReadNBits(indexBegin + 2, data, 14);
                     break;
                 case 2:
                     Size = 32;
-                    value_ = BitUtils.ReadNBits(indexBegin + 2, data, 30);
+                    _value = BitUtils.ReadNBits(indexBegin + 2, data, 30);
                     break;
                 case 3:
                     Size = 64;
-                    value_ = BitUtils.LongReadNBits(indexBegin + 2, data, 62);
+                    _value = BitUtils.LongReadNBits(indexBegin + 2, data, 62);
                     break;
                 default:
                     throw new Exception();
