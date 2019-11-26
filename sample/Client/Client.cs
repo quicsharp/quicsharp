@@ -1,5 +1,6 @@
 ﻿using quicsharp;
 using System;
+using System.IO;
 using System.Threading;
 
 namespace Client
@@ -34,6 +35,9 @@ namespace Client
         public Client(string username)
         {
             username_ = username;
+            // Write the quicsharp logs in an external file
+            Logger.StreamOutput = File.AppendText("log_" + DateTime.Now.ToFileTime() + ".txt");
+            Logger.StreamOutput.AutoFlush = true;
         }
 
         public void Start()

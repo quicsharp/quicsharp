@@ -28,10 +28,9 @@ namespace quicsharp
         /// <param name="port">The port to listen to</param>
         public QuicListener(int port)
         {
-            _started_ = false;
+            _started = false;
             _port = port;
             _connectionPool = new ConnectionPool();
-            Logger.LogToStdout = true;
         }
 
         ~QuicListener()

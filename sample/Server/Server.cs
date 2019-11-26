@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
@@ -15,6 +16,10 @@ namespace quicsharp.sample
         static void Main()
         {
             int port = 8880;
+
+            // Print the logs in the console
+            Logger.StreamOutput = new StreamWriter(Console.OpenStandardOutput());
+            Logger.StreamOutput.AutoFlush = true;
 
             // Simulate 10% packet loss
             QuicConnection.PacketLossPercentage = 10;
